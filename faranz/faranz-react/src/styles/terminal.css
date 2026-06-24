@@ -417,6 +417,9 @@ body {
 
 .about-art {
   flex-shrink: 0;
+  font-size: 3.2px;
+  line-height: 3.6px;
+  letter-spacing: -0.3px;
   padding: 16px 14px;
   border: 1px solid color-mix(in srgb, var(--t-accent1) 18%, transparent);
   border-radius: 6px;
@@ -445,7 +448,9 @@ body {
 
   .about-art {
     padding: 12px 10px;
-    font-size: clamp(6px, 2vw, 8px);
+    font-size: 3px;
+    line-height: 3.5px;
+    letter-spacing: -0.5px;
   }
 }
 
