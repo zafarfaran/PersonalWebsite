@@ -43,7 +43,7 @@ registerCommand('which', (args) => {
     'help', 'about', 'experience', 'projects', 'skills', 'education', 'contact',
     'cv', 'theme', 'clear', 'history', 'ls', 'cd', 'pwd', 'cat', 'nano',
     'touch', 'mkdir', 'rm', 'echo', 'whoami', 'date', 'uname', 'hostname',
-    'which', 'grep', 'neofetch', 'matrix', 'snake', 'pong', 'games',
+    'which', 'grep', 'neofetch', 'matrix', 'snake', 'pong', 'dino', 'games',
   ];
   const cmd = args[0].toLowerCase();
   if (builtins.includes(cmd)) {
@@ -65,7 +65,7 @@ registerCommand('neofetch', () => {
     ['', ''],
     ['Languages', 'Python, TypeScript, Java, C++, PHP, SQL, C#'],
     ['Focus', 'Multi-Agent Systems, RAG, LLM Engineering'],
-    ['Projects', '13 shipped'],
+    ['Projects', '14 shipped'],
     ['Hackathons', '6x Winner'],
   ];
 
@@ -104,16 +104,22 @@ registerCommand('pong', () => ({
   overlay: 'pong',
 }));
 
+registerCommand('dino', () => ({
+  output: [],
+  overlay: 'dino',
+}));
+
 registerCommand('games', (args) => {
   const gameList = [
     ['snake', 'Classic snake — eat food, grow, don\'t hit walls'],
     ['pong', 'Pong vs AI — first to 7 wins'],
+    ['dino', 'Chrome offline dino — jump over cacti'],
   ];
   const name = args[0]?.toLowerCase();
   if (name) {
     const found = gameList.find(([g]) => g === name);
     if (found) {
-      return { output: [], overlay: name as 'snake' | 'pong' };
+      return { output: [], overlay: name as 'snake' | 'pong' | 'dino' };
     }
     return {
       output: [<span className="c-accent5">Unknown game: {name}. Try 'games' to see available games.</span>],

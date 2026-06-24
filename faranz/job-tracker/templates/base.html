@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Job Ledger{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    /* Set theme before first paint to avoid a flash of the wrong mode */
+    document.documentElement.dataset.theme =
+      localStorage.getItem("theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  </script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-no">No. 001</span>
+      <h1>The Job Ledger</h1>
+      <span class="brand-sub">applications &middot; notes &middot; outcomes</span>
+    </a>
+    <nav class="masthead-nav">
+      <button class="btn btn-ghost theme-toggle" type="button" id="theme-toggle"
+              title="Toggle dark mode" aria-label="Toggle dark mode"></button>
+      <form method="post" action="{{ url_for('inbox_check') }}" class="inline-form">
+        <button class="btn btn-ghost" type="submit" title="Scan your inbox for replies now">Check inbox</button>
+      </form>
+      <a class="btn btn-ghost" href="{{ url_for('export_csv') }}">Export CSV</a>
+      <a class="btn btn-ghost" href="{{ url_for('export_json') }}">Export JSON</a>
+      <a class="btn btn-primary" href="{{ url_for('new_job') }}">+ Log application</a>
+    </nav>
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="colophon">kept locally &middot; sqlite &middot; {{ self.title() }}</footer>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <script>
+    /* ------- alert toasts: poll for inbox-driven updates ------- */
+    const shownAlerts = new Set();
+
+    function showToast(alert) {
+      if (shownAlerts.has(alert.id)) return;
+      shownAlerts.add(alert.id);
+
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      const link = alert.job_id ? `/job/${alert.job_id}` : "/";
+      toast.innerHTML = `
+        <span class="toast-mark">&#9993;</span>
+        <a class="toast-body" href="${link}">${alert.message
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;")}</a>
+        <button class="toast-close" title="Dismiss">&times;</button>`;
+      toast.querySelector(".toast-close").addEventListener("click", async () => {
+        await fetch(`/api/alerts/${alert.id}/seen`, { method: "POST" });
+        toast.remove();
+      });
+      document.getElementById("toasts").appendChild(toast);
+    }
+
+    async function pollAlerts() {
+      try {
+        const res = await fetch("/api/alerts");
+        (await res.json()).forEach(showToast);
+      } catch (e) { /* server restarting; try again next tick */ }
+    }
+    pollAlerts();
+    setInterval(pollAlerts, 30000);
+  </script>
+
+  <script>
+    const toggle = document.getElementById("theme-toggle");
+    const root = document.documentElement;
+    const setLabel = () => {
+      toggle.textContent = root.dataset.theme === "dark" ? "☀ Day" : "☾ Night";
+    };
+    toggle.addEventListener("click", () => {
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", root.dataset.theme);
+      setLabel();
+    });
+    setLabel();
+  </script>
+</body>
+</html>

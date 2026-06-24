@@ -12,6 +12,23 @@ Production-grade AI and machine learning projects, from LLM applications to rein
 <div class="publication-card">
 <div class="pub-year">2026</div>
 <div class="pub-content">
+<h3>GalleryGen – AI-Curated 3D Gallery</h3>
+<p class="pub-subtitle">Won ElevenHacks. Upload photos and walk through exhibitions arranged by a Claude curator.</p>
+<p class="pub-abstract">React + react-three-fiber walkable 3D renderer; Node/Express + Prisma curator agent with tool-calling for theme, hero pieces, captions, and room layout; Python/FastAPI vision service for image analysis. Pure layout engine emits scene.json with multi-room overflow and doorway placement.</p>
+<div class="pub-tags">
+<span>react-three-fiber</span>
+<span>Claude</span>
+<span>Express</span>
+<span>Prisma</span>
+<span>FastAPI</span>
+<span>TypeScript</span>
+</div>
+</div>
+</div>
+
+<div class="publication-card">
+<div class="pub-year">2026</div>
+<div class="pub-content">
 <h3>Donald – Voice &ldquo;roast&rdquo; + CV Coaching</h3>
 <p class="pub-subtitle">~40k views in 72 hours, 300+ users, $4.1M+ in tuition left in shambles. Voice-first CV coach with Firecrawl research and ElevenLabs.</p>
 <p class="pub-abstract">PostgreSQL for accounts and CV artifacts; Redis for rate limits, session voice-activity, and dedupe; Celery workers drain Redis-backed queues for Firecrawl research and analysis off the hot path. FastAPI and Next.js with Claude and ElevenLabs.</p>

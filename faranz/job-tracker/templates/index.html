@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Job Ledger{% endblock %}
+{% block content %}
+
+<section class="tally">
+  <a href="{{ url_for('index') }}" class="tally-item {{ 'active' if not active_status }}">
+    <span class="tally-n">{{ total }}</span>
+    <span class="tally-label">All</span>
+  </a>
+  {% for s in statuses %}
+    {% if counts.get(s) %}
+    <a href="{{ url_for('index', status=s) }}"
+       class="tally-item {{ 'active' if active_status == s }}">
+      <span class="tally-n">{{ counts[s] }}</span>
+      <span class="tally-label">{{ s }}</span>
+    </a>
+    {% endif %}
+  {% endfor %}
+</section>
+
+<form class="searchbar" method="get" action="{{ url_for('index') }}">
+  {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}">{% endif %}
+  <input type="search" name="q" value="{{ q }}" placeholder="Search company, role, location&hellip;">
+  <button class="btn btn-ghost" type="submit">Search</button>
+  {% if q or active_status %}<a class="btn btn-ghost" href="{{ url_for('index') }}">Clear</a>{% endif %}
+</form>
+
+{% if jobs %}
+<table class="ledger">
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>Role</th>
+      <th>Location</th>
+      <th>Applied</th>
+      <th>Status</th>
+      <th class="num">Last touched</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for job in jobs %}
+    <tr onclick="window.location='{{ url_for('job_detail', job_id=job['id']) }}'">
+      <td class="co">{{ job['company'] }}</td>
+      <td>{{ job['title'] }}</td>
+      <td class="muted">{{ job['location'] or '—' }}</td>
+      <td class="muted">{{ job['date_applied'] or '—' }}</td>
+      <td><span class="stamp stamp-{{ job['status']|lower|replace(' ', '-') }}">{{ job['status'] }}</span></td>
+      <td class="num muted">{{ job['updated_at'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  <p class="empty-mark">&sect;</p>
+  <p>Nothing in the ledger{% if q or active_status %} for this filter{% endif %}.</p>
+  <a class="btn btn-primary" href="{{ url_for('new_job') }}">Log your first application</a>
+</div>
+{% endif %}
+
+{% endblock %}

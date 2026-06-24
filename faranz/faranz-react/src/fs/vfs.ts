@@ -59,7 +59,7 @@ Currently at RealityMine (Manchester) and running Acumei.
 
 Languages:  Python, TypeScript, Java, SQL, C#
 Focus:      Multi-Agent Systems, RAG, LLM Engineering
-Projects:   13 shipped
+Projects:   14 shipped
 Hackathons: 6x Winner
 
 "I build things that think."

@@ -32,6 +32,16 @@ export const projects: Project[] = [
   },
   {
     year: '2026',
+    name: 'GalleryGen',
+    brief: 'AI-Curated 3D Gallery',
+    subtitle:
+      'Won ElevenHacks. Upload photos and walk through exhibitions arranged by a Claude curator.',
+    description:
+      'React + react-three-fiber walkable 3D renderer; Node/Express + Prisma curator agent with tool-calling (theme, hero, captions, layout); Python/FastAPI vision service. Pure layout engine emits scene.json with multi-room overflow and doorway placement.',
+    tags: ['react-three-fiber', 'Claude', 'Express', 'Prisma', 'FastAPI', 'TypeScript'],
+  },
+  {
+    year: '2026',
     name: 'GetOut',
     brief: 'Voice + text "social wingman"',
     subtitle:

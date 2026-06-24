@@ -9,7 +9,7 @@ export interface NanoRequest {
 export interface CommandResult {
   output: ReactNode[];
   nano?: NanoRequest;
-  overlay?: 'matrix' | 'snake' | 'pong';
+  overlay?: 'matrix' | 'snake' | 'pong' | 'dino';
 }
 
 export type CommandHandler = (args: string[]) => CommandResult;

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit entry' if job else 'New entry' }} — Job Ledger{% endblock %}
+{% block content %}
+
+<section class="sheet">
+  <h2 class="sheet-title">{{ 'Edit entry' if job else 'New entry' }}</h2>
+
+  <form method="post" class="entry-form">
+    <div class="field-row">
+      <label class="field">
+        <span>Company *</span>
+        <input name="company" required value="{{ job['company'] if job else '' }}" autofocus>
+      </label>
+      <label class="field">
+        <span>Role / title *</span>
+        <input name="title" required value="{{ job['title'] if job else '' }}">
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Posting URL</span>
+        <input name="url" type="url" placeholder="https://" value="{{ job['url'] if job else '' }}">
+      </label>
+      <label class="field">
+        <span>Location</span>
+        <input name="location" placeholder="Remote, London, ..." value="{{ job['location'] if job else '' }}">
+      </label>
+      <label class="field">
+        <span>Contact email</span>
+        <input name="contact_email" type="email" placeholder="recruiter@company.com" value="{{ job['contact_email'] if job else '' }}">
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Salary / range</span>
+        <input name="salary" placeholder="e.g. £60–70k" value="{{ job['salary'] if job else '' }}">
+      </label>
+      <label class="field">
+        <span>Date applied</span>
+        <input name="date_applied" type="date" value="{{ job['date_applied'] if job else today }}">
+      </label>
+      <label class="field">
+        <span>Status</span>
+        <select name="status">
+          {% for s in statuses %}
+          <option value="{{ s }}" {{ 'selected' if (job and job['status'] == s) or (not job and s == 'Applied') }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">{{ 'Save changes' if job else 'Add to ledger' }}</button>
+      <a class="btn btn-ghost" href="{{ url_for('job_detail', job_id=job['id']) if job else url_for('index') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+
+{% endblock %}

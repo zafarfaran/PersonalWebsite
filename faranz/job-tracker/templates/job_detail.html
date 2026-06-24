@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ job['company'] }} — Job Ledger{% endblock %}
+{% block content %}
+
+<a class="crumb" href="{{ url_for('index') }}">&larr; Back to ledger</a>
+
+<section class="sheet">
+  <div class="detail-head">
+    <div>
+      <h2 class="detail-company">{{ job['company'] }}</h2>
+      <p class="detail-title">{{ job['title'] }}</p>
+    </div>
+    <span class="stamp stamp-lg stamp-{{ job['status']|lower|replace(' ', '-') }}">{{ job['status'] }}</span>
+  </div>
+
+  <dl class="detail-meta">
+    <div><dt>Location</dt><dd>{{ job['location'] or '—' }}</dd></div>
+    <div><dt>Salary</dt><dd>{{ job['salary'] or '—' }}</dd></div>
+    <div><dt>Applied</dt><dd>{{ job['date_applied'] or '—' }}</dd></div>
+    <div><dt>Contact</dt><dd>{{ job['contact_email'] or '—' }}</dd></div>
+    <div><dt>Posting</dt>
+      <dd>{% if job['url'] %}<a href="{{ job['url'] }}" target="_blank" rel="noopener">open link &nearr;</a>{% else %}—{% endif %}</dd>
+    </div>
+  </dl>
+
+  <div class="detail-actions">
+    <form method="post" action="{{ url_for('change_status', job_id=job['id']) }}" class="inline-form">
+      <select name="status">
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if job['status'] == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-ghost" type="submit">Update status</button>
+    </form>
+    <a class="btn btn-ghost" href="{{ url_for('edit_job', job_id=job['id']) }}">Edit entry</a>
+    <form method="post" action="{{ url_for('delete_job', job_id=job['id']) }}"
+          onsubmit="return confirm('Delete this entry and all its notes?')" class="inline-form">
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
+</section>
+
+<section class="sheet">
+  <details class="followup">
+    <summary class="followup-summary">
+      <span class="sheet-title-inline">Send follow-up email</span>
+      <span class="followup-hint">{{ 'ready' if email_configured else 'needs setup — copy .env.example to .env' }}</span>
+    </summary>
+    {% if email_configured %}
+    <form method="post" action="{{ url_for('send_followup', job_id=job['id']) }}" class="followup-form">
+      <label class="field">
+        <span>To</span>
+        <input name="to" type="email" required value="{{ job['contact_email'] }}" placeholder="recruiter@company.com">
+      </label>
+      <label class="field">
+        <span>Subject</span>
+        <input name="subject" required value="{{ followup_subject }}">
+      </label>
+      <label class="field">
+        <span>Message</span>
+        <textarea name="body" rows="9" required>{{ followup_body }}</textarea>
+      </label>
+      <button class="btn btn-primary" type="submit"
+              onclick="return confirm('Send this follow-up email now?')">Send follow-up</button>
+    </form>
+    {% else %}
+    <p class="muted followup-setup">
+      To enable sending, copy <code>.env.example</code> to <code>.env</code> in the
+      <code>job-tracker</code> folder and fill in your SMTP details
+      (for Gmail: an app password). Then restart the app.
+    </p>
+    {% endif %}
+  </details>
+</section>
+
+<section class="sheet">
+  <h3 class="sheet-title">Notes &amp; updates</h3>
+
+  <form method="post" action="{{ url_for('add_note', job_id=job['id']) }}" class="note-form">
+    <textarea name="content" rows="3" required
+              placeholder="Recruiter called back, interview booked for Tuesday&hellip;"></textarea>
+    <button class="btn btn-primary" type="submit">Add note</button>
+  </form>
+
+  {% if notes %}
+  <ol class="timeline">
+    {% for note in notes %}
+    <li class="timeline-item {{ 'is-status' if note['kind'] == 'status' }} {{ 'is-email' if note['kind'] == 'email' }} {{ 'is-inbox' if note['kind'] == 'inbox' }}">
+      <span class="timeline-date">{{ note['created_at'] }}</span>
+      <p class="timeline-body">{{ note['content'] }}</p>
+      <form method="post"
+            action="{{ url_for('delete_note', job_id=job['id'], note_id=note['id']) }}"
+            class="inline-form">
+        <button class="timeline-del" type="submit" title="Delete note">&times;</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="muted">No notes yet.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

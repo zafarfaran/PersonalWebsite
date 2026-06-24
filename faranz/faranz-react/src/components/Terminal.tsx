@@ -8,6 +8,7 @@ import NanoEditor from './NanoEditor';
 import MatrixRain from './MatrixRain';
 import SnakeGame from './SnakeGame';
 import PongGame from './PongGame';
+import DinoGame from './DinoGame';
 import { executeCommand, getCommandNames, type NanoRequest } from '../commands/registry';
 import { getThemeById, applyTheme, DEFAULT_THEME_ID } from '../themes/themes';
 import { getCwdShort, writeFile } from '../fs/vfs';
@@ -31,6 +32,7 @@ export default function Terminal() {
   const [showMatrix, setShowMatrix] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
   const [showPong, setShowPong] = useState(false);
+  const [showDino, setShowDino] = useState(false);
 
   const runCommand = useCallback((input: string) => {
     const cwdPath = getCwdShort();
@@ -105,6 +107,11 @@ export default function Terminal() {
       setCommandHistory(prev => [...prev, input]);
       return;
     }
+    if (result.overlay === 'dino') {
+      setShowDino(true);
+      setCommandHistory(prev => [...prev, input]);
+      return;
+    }
 
     const baseName = cmd.split(/\s+/)[0];
     if (NAV_TABS.includes(baseName)) {
@@ -155,6 +162,15 @@ export default function Terminal() {
             setOutputLines(prev => [
               ...prev,
               <span className="c-dimmed">pong: game ended — you <span className="c-accent1">{p}</span> : <span className="c-accent5">{ai}</span> ai</span>,
+              <span>{''}</span>,
+            ]);
+          }} />
+        ) : showDino ? (
+          <DinoGame onExit={(score) => {
+            setShowDino(false);
+            setOutputLines(prev => [
+              ...prev,
+              <span className="c-dimmed">dino: game ended with score <span className="c-accent1">{score}</span></span>,
               <span>{''}</span>,
             ]);
           }} />
