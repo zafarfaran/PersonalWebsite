@@ -24,7 +24,7 @@ registerCommand('about', () => ({
           <tbody>
             <tr>
               <td><span className="c-accent2">Currently</span></td>
-              <td>Software Engineer @ RealityMine</td>
+              <td>Machine Learning Engineer @ RealityMine</td>
             </tr>
             <tr>
               <td><span className="c-accent2">Building</span></td>

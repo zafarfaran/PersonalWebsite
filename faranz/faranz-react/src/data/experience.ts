@@ -11,8 +11,19 @@ export const experiences: Experience[] = [
   {
     company: 'RealityMine',
     location: 'Manchester, UK',
+    position: 'Machine Learning Engineer',
+    period: 'Apr 2026 – Present',
+    bullets: [
+      'Migrated transformer-based models from Azkaban to Airflow, modernising ML orchestration and deployment',
+      'Added contrastive learning to the model, improving accuracy by ~8%',
+      'Designed Auto-Research — a CLI for autonomous ML experiments with Claude and OpenAI',
+    ],
+  },
+  {
+    company: 'RealityMine',
+    location: 'Manchester, UK',
     position: 'Software Engineer',
-    period: 'Dec 2024 – Present',
+    period: 'Dec 2024 – Apr 2026',
     bullets: [
       'Built an AI-powered server management and diagnostics tool that autonomously triages errors and runs remediation, cutting MTTR from ~60 min to minutes',
       'Built an agentic automation tool that converts raw web-traffic captures into extraction code, eliminating ~20 hours/week of manual analysis',

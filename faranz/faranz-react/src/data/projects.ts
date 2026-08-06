@@ -39,6 +39,7 @@ export const projects: Project[] = [
     description:
       'React + react-three-fiber walkable 3D renderer; Node/Express + Prisma curator agent with tool-calling (theme, hero, captions, layout); Python/FastAPI vision service. Pure layout engine emits scene.json with multi-room overflow and doorway placement.',
     tags: ['react-three-fiber', 'Claude', 'Express', 'Prisma', 'FastAPI', 'TypeScript'],
+    link: 'https://ai-gallery-sooty.vercel.app/',
   },
   {
     year: '2026',

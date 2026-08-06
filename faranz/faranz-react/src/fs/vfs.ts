@@ -52,7 +52,7 @@ Directories:
   root.children!.set('about.txt', makeFile('about.txt', `Faran Zafar
 ===========
 
-Software Engineer | AI Specialist | 6x Hackathon Winner
+ML Engineer | AI Specialist | 6x Hackathon Winner
 
 Building agentic AI systems that solve real problems.
 Currently at RealityMine (Manchester) and running Acumei.

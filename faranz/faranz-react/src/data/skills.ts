@@ -33,7 +33,7 @@ export const skills: SkillCategory[] = [
   },
   {
     name: 'Infrastructure',
-    items: ['AWS Bedrock', 'Cloudflare Workers', 'Docker', 'CI/CD', 'Sentry', 'Vercel'],
+    items: ['AWS Bedrock', 'Cloudflare Workers', 'Docker', 'Airflow', 'CI/CD', 'Sentry', 'Vercel'],
   },
   {
     name: 'Tools & Patterns',

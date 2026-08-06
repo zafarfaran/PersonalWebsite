@@ -16,7 +16,7 @@ registerCommand('whoami', () => ({
   output: [
     <pre className="c-accent1">{CAT_ASCII}</pre>,
     <span className="c-accent1 c-bold">Faran Zafar</span>,
-    <span className="c-dimmed">Software Engineer · AI Specialist · 6x Hackathon Winner</span>,
+    <span className="c-dimmed">ML Engineer · AI Specialist · 6x Hackathon Winner</span>,
   ],
 }));
 
