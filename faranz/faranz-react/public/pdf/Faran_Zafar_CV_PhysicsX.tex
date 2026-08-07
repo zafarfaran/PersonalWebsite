@@ -1,7 +1,7 @@
 
 \documentclass[10pt,a4paper]{article}
 
-\usepackage[a4paper,margin=1.2cm]{geometry}
+\usepackage[a4paper,margin=0.9cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -25,8 +25,8 @@
 
 \titleformat{\section}
   {\scshape\normalsize\raggedright}
-  {}{0pt}{}[\vspace{-4pt}\titlerule\vspace{2pt}]
-\titlespacing*{\section}{0pt}{6pt}{3pt}
+  {}{0pt}{}[\vspace{-2pt}\titlerule\vspace{6pt}]
+\titlespacing*{\section}{0pt}{5pt}{4pt}
 
 \setlist[itemize]{leftmargin=*, topsep=0pt, itemsep=0pt, parsep=0pt, partopsep=0pt}
 
@@ -36,16 +36,16 @@
   \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}r@{}}
     \textbf{#1} & \textit{#2} \\
     #3 & \textit{#4} \\
-  \end{tabular*}\vspace{1pt}
+  \end{tabular*}
 }
 \newcommand{\cventryone}[3]{%
   \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}r@{}}
     \textbf{#1} & \textit{#2} \\
     #3 & \\
-  \end{tabular*}\vspace{1pt}
+  \end{tabular*}
 }
-\newcommand{\cvproject}[2]{\textbf{#1} \hfill \textit{#2}\vspace{1pt}}
-\newcommand{\smallgap}{\vspace{1pt}}
+\newcommand{\cvproject}[2]{\textbf{#1} \hfill \textit{#2}}
+\newcommand{\smallgap}{\vspace{0.5pt}}
 
 \begin{document}
 
@@ -54,7 +54,6 @@
   \cvname{Faran Zafar} & \cvmeta{\href{mailto:faranzafarcs@gmail.com}{faranzafarcs@gmail.com}} \\
   \cvmeta{Manchester, UK \;|\; (+44) 7355-889332 \;|\; \href{https://faranz.com}{faranz.com}} & \cvmeta{} \\
 \end{tabular*}
-\vspace{1pt}
 
 % ===== Experience =====
 \section{Experience}
@@ -69,38 +68,34 @@
 
 \cventry{Software Engineer}{Dec 2024 -- Apr 2026}{RealityMine, Manchester, UK}{}
 \begin{itemize}
-  \item Built an AI-powered server management and diagnostics tool that autonomously triages errors and runs remediation, cutting MTTR from \(\sim\)60 minutes to minutes.
-  \item Built an agentic automation tool that converts raw web-traffic captures into extraction code, eliminating \(\sim\)20 hours/week of manual analysis.
-  \item Optimized a \(\sim\)600\,GB/day data pipeline, improving throughput by \(\sim\)86\%.
-  \item Reduced legacy system alarms/crashes by \(\sim\)95\% through targeted reliability fixes.
+  \item Built an AI-powered server management tool that autonomously triages errors and remediates, cutting MTTR from \(\sim\)60 minutes to minutes.
+  \item Built an agentic tool that converts raw web-traffic captures into extraction code, eliminating \(\sim\)20 hours/week of manual analysis.
+  \item Optimized a \(\sim\)600\,GB/day data pipeline (\(\sim\)86\% throughput gain); cut legacy alarms/crashes by \(\sim\)95\%.
 \end{itemize}
 \smallgap
 
 \cventry{Founder}{Feb 2026 -- Present}{Acumei (\href{https://acumei.com}{acumei.com}), Manchester, UK}{}
 \begin{itemize}
-  \item Building AI automation for British SMEs --- agentic pipelines handling calls, dispatch, rebooking, stock, and invoicing across CRM, POS, and diary systems.
-  \item Shipped production integrations achieving 7\(\times\) weekly rebookings for salon clients.
-  \item End-to-end custom builds in 3--14 days with full code/prompt ownership and GDPR-compliant data handling.
+  \item Building AI automation for British SMEs --- agentic pipelines for calls, dispatch, rebooking, stock, and invoicing across CRM/POS/diary.
+  \item Shipped production integrations with 7\(\times\) weekly rebookings; end-to-end builds in 3--14 days with GDPR-compliant data handling.
 \end{itemize}
 \smallgap
 
 \cventry{Founder \& CTO}{Jan 2026 -- April 2026}{Ovalens (\href{https://ovalens.com}{ovalens.com}), London, UK}{}
 \begin{itemize}
-  \item Raised \pounds7k via hackathon win. Implemented a deterministic UK tax engine (16 modules) incl.\ income tax, NI, AA, HICBC, loans, BED/ISA.
-  \item Shipped Claude-powered chat (streaming) with 6 tools; delivered 30+ REST APIs, async processing via Redis, 280+ tests, and Sentry observability.
+  \item Raised \pounds7k via hackathon win. Deterministic UK tax engine (16 modules); Claude chat with 6 tools; 30+ APIs, Redis, 280+ tests, Sentry.
 \end{itemize}
 \smallgap
 
 \cventry{Research Intern}{Jul 2024 -- Aug 2024}{Google DeepMind, Birmingham, UK}{}
 \begin{itemize}
-  \item Co-developed Adaptive Memory RAG (AMRAG) framework integrating self-checks and web search, improving response accuracy by 88\%.
-  \item Applied decomposition, hallucination detection, and retrieval augmentation; achieved sub-5-second response times.
+  \item Co-developed AMRAG (self-checks + web search), improving response accuracy by 88\% with sub-5-second latency.
 \end{itemize}
 \smallgap
 
 \cventry{Teaching Assistant}{Oct 2023 -- Jul 2024}{Aston University, Birmingham, UK}{}
 \begin{itemize}
-  \item Mentored 10+ student teams in OOP and led 8+ hands-on workshops (30--50 students per session).
+  \item Mentored 10+ student teams in OOP and led 8+ workshops (30--50 students per session).
 \end{itemize}
 
 % ===== Education =====
@@ -121,34 +116,46 @@
 
 \cvproject{\href{https://watchman-rust.vercel.app/}{Chainwatch} (Open Source)}{}
 \begin{itemize}
-  \item Local-first npm supply chain risk analyzer with provenance verification, compound risk scoring, and MCP integration. Catches zero-day attacks (axios, chalk/debug patterns); 138+ tests incl.\ red-team attack simulations; \(\sim\)45 tokens/package for AI-native context efficiency.
+  \item Local-first npm supply chain risk analyzer with provenance verification, compound risk scoring, and MCP; 138+ tests incl.\ red-team sims.
 \end{itemize}
 \smallgap
 
 \cvproject{\href{https://heyitsdonald.com}{Donald (heyitsdonald.com)}}{}
 \begin{itemize}
-  \item Full-stack voice CV coach (Claude, ElevenLabs, Firecrawl); FastAPI, Next.js, PostgreSQL, Redis, Celery workers. \(\sim\)40k views in 72\,hrs, 300+ users.
+  \item Voice CV coach (Claude, ElevenLabs, Firecrawl); FastAPI, Next.js, PostgreSQL, Redis, Celery. \(\sim\)40k views in 72\,hrs, 300+ users.
 \end{itemize}
 \smallgap
 
 \cvproject{\href{https://ai-gallery-sooty.vercel.app/}{GalleryGen} \,(ElevenHacks Winner)}{}
 \begin{itemize}
-  \item AI-curated walkable 3D gallery: upload photos, Claude curator agent arranges rooms, hero pieces, and captions via tool-calling; react-three-fiber renderer, Node/Express + Prisma layout engine, Python/FastAPI vision service.
+  \item AI-curated walkable 3D gallery with Claude curator agent (tool-calling); react-three-fiber, Express/Prisma, FastAPI vision.
 \end{itemize}
 \smallgap
 
-\cvproject{Katsu}{}
+\cvproject{Nova \,(Saturn Hackathon Winner)}{}
 \begin{itemize}
-  \item Production ops platform cutting MTTR from hours to minutes; secure multi-agent remediation with prompt-injection defense and SSH session pooling (\(\sim\)\$0.02/request).
+  \item AI OS for accountants: multi-agent document processing, compliance/VAT checks, duplicate detection, and tool-calling chat.
 \end{itemize}
 \smallgap
 
-\cvproject{Flashbits \,(Sold)}{}
+\cvproject{BRRR Agent \,(Claude Plugin)}{}
 \begin{itemize}
-  \item Swipe-based mobile interview prep with AI quizzes, spaced repetition, and recommendation engine; 1{,}700+ curated problems across 14 DSA categories.
+  \item Python Claude plugin for property search and BRRR analysis --- deal screening with full price breakdown (purchase, rehab, rents, cash flow).
+\end{itemize}
+\smallgap
+
+\cvproject{GetOut}{}
+\begin{itemize}
+  \item Voice/text social wingman: events and similar users via embeddings; LLM tool-calling on Cloudflare Workers (D1, Vectorize, Durable Objects).
+\end{itemize}
+\smallgap
+
+\cvproject{Fixie}{}
+\begin{itemize}
+  \item Turns PDFs/URLs into guided voice repair walkthroughs; FastAPI, Next.js, Celery, Claude, and ElevenLabs.
 \end{itemize}
 
-\vfill
-\cvmeta{More projects at \href{https://faranz.com}{faranz.com}; Donald at \href{https://heyitsdonald.com}{heyitsdonald.com}; Acumei at \href{https://acumei.com}{acumei.com}; Ovalens at \href{https://ovalens.com}{ovalens.com}.}
+\vspace{2pt}
+\cvmeta{More at \href{https://faranz.com}{faranz.com} \;|\; \href{https://heyitsdonald.com}{heyitsdonald.com} \;|\; \href{https://acumei.com}{acumei.com} \;|\; \href{https://ovalens.com}{ovalens.com}}
 
 \end{document}

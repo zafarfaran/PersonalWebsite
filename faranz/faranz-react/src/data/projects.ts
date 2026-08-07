@@ -83,6 +83,16 @@ export const projects: Project[] = [
   },
   {
     year: '2026',
+    name: 'BRRR Agent',
+    brief: 'Property Search & BRRR Analysis',
+    subtitle:
+      'Claude plugin for property search and BRRR deal analysis with full price breakdowns.',
+    description:
+      'Python Claude plugin that screens investment properties, runs BRRR (Buy, Rehab, Rent, Refinance) analysis, and returns purchase, rehab, rent, and cash-flow price breakdowns.',
+    tags: ['Python', 'Claude Plugin', 'BRRR', 'Property Analysis', 'Tool Calling'],
+  },
+  {
+    year: '2026',
     name: 'Katsu',
     brief: 'Agentic Server Management',
     subtitle:
