@@ -6,6 +6,7 @@ import './skills';
 import './education';
 import './contact';
 import './chess';
+import './math';
 import './theme';
 import './filesystem';
 import './nano';

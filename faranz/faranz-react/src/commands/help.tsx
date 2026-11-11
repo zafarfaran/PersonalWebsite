@@ -13,6 +13,7 @@ const portfolioCommands = [
   ['contact', 'Social links and email'],
   ['cv', 'Open my CV in a new tab'],
   ['chess', 'Open my chess opening trainer'],
+  ['math', 'Open my mental math trainer'],
   ['theme', 'Switch terminal color theme'],
 ];
 
