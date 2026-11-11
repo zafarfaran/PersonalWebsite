@@ -24,6 +24,8 @@ export interface State {
   cards: Record<string, Memory>
   /** Setup builder: number of perfect builds per opening. */
   setups: Record<string, number>
+  /** Board trainer: best score per exercise. */
+  vision: Record<string, number>
   days: string[]
   settings: { pieces: keyof typeof PIECE_SETS; board: keyof typeof BOARDS; level: number }
 }
@@ -34,6 +36,7 @@ const fresh = (): State => ({
   lines: {},
   cards: {},
   setups: {},
+  vision: {},
   days: [],
   settings: { pieces: 'staunty', board: 'night', level: 2 },
 })
@@ -112,6 +115,10 @@ export function recordCard(key: string, correct: boolean, now = Date.now()) {
 
 export function recordSetup(openingId: string, now = Date.now()) {
   set({ ...state, setups: { ...state.setups, [openingId]: (state.setups[openingId] ?? 0) + 1 }, days: withToday(state.days, now) })
+}
+
+export function recordVision(exercise: string, score: number, now = Date.now()) {
+  set({ ...state, vision: { ...state.vision, [exercise]: Math.max(state.vision[exercise] ?? 0, score) }, days: withToday(state.days, now) })
 }
 
 export function updateSettings(patch: Partial<State['settings']>) {

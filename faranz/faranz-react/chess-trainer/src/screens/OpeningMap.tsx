@@ -52,6 +52,7 @@ export function OpeningMap({ o }: { o: Opening }) {
           <p className="note">{o.setupNote}</p>
           <a className="btn" href={href('practise', 'o', o.id)}>Practise the lines</a>
           <a className="btn" href={href('match', o.id)}>Play a practice match</a>
+          <a className="btn" href={href('game', o.id)}>Play a full game</a>
           <a className="btn" href={href('memorise', o.id)}>Memory trainer</a>
         </div>
       </div>

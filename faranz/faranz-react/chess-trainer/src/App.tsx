@@ -6,9 +6,10 @@ import { Learn } from './screens/Learn'
 import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
 import { OpeningMap } from './screens/OpeningMap'
-import { PlayOn } from './screens/PlayOn'
+import { Game } from './screens/Game'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
+import { Vision } from './screens/Vision'
 import { BOARDS, PIECE_SETS, updateSettings, useStore, type State } from './store'
 
 function Screen({ route }: { route: string[] }) {
@@ -18,6 +19,12 @@ function Screen({ route }: { route: string[] }) {
       return <Home />
     case 'progress':
       return <Progress />
+    case 'board':
+      return <Vision />
+    case 'game': {
+      const o = openingById(a ?? '')
+      return o ? <Game key={o.id} opening={o} /> : <NotFound what="opening" />
+    }
     case 'o': {
       const o = openingById(a ?? '')
       return o ? <OpeningMap o={o} /> : <NotFound what="opening" />
@@ -36,7 +43,7 @@ function Screen({ route }: { route: string[] }) {
     }
     case 'play': {
       const found = lessonById(a ?? '')
-      return found?.lesson.plan ? <PlayOn key={a} {...found} /> : <NotFound what="line to play on from" />
+      return found?.lesson.plan ? <Game key={a} {...found} /> : <NotFound what="line to play on from" />
     }
     case 'practise':
       return <Practise key={route.join('/')} kind={a ?? 'due'} id={b} />
@@ -61,6 +68,7 @@ export function App() {
         </a>
         <nav>
           <a href={href()} className={route.length === 0 ? 'on' : ''}>Home</a>
+          <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
           <a href="https://faranz.com/">faranz.com ↗</a>
         </nav>

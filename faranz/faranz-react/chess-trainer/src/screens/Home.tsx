@@ -38,6 +38,15 @@ export function Home() {
         <a className="btn" href={href('progress')}>See progress</a>
       </div>
 
+      <a className="card row boardcard" href={href('board')}>
+        <div className="grow">
+          <strong>Board trainer</strong>
+          <br />
+          <span className="note">Learn to read and write chess notation and find any square instantly: five short drills.</span>
+        </div>
+        <span className="btn">Open</span>
+      </a>
+
       <div className="openings">
         {OPENINGS.map(o => (
           <OpeningCard key={o.id} o={o} />
@@ -70,7 +79,8 @@ function OpeningCard({ o }: { o: Opening }) {
       </div>
       <div className="modes">
         <a className="mode" href={href('practise', 'o', o.id)}><b>Practise</b><span>Drill the lines from memory</span></a>
-        <a className="mode" href={href('match', o.id)}><b>Match</b><span>Black picks a different reply each game</span></a>
+        <a className="mode" href={href('match', o.id)}><b>Match</b><span>Opening only: Black picks a different reply each time</span></a>
+        <a className="mode" href={href('game', o.id)}><b>Full game</b><span>Play to the end against common replies, with every move rated</span></a>
         <a className="mode" href={href('memorise', o.id)}><b>Memorise</b><span>Quick-fire positions and the setup</span></a>
       </div>
     </div>

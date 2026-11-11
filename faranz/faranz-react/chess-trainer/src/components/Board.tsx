@@ -19,6 +19,8 @@ interface Props {
   /** Free placement: any piece may move to any empty square (setup builder). */
   free?: boolean
   onMove?: (from: Square, to: Square) => void
+  /** Called with any square that is clicked, pieces or not (board trainer). */
+  onSquare?: (sq: Square) => void
   highlights?: Highlight[]
   arrows?: Arrow[]
   coords?: boolean
@@ -63,7 +65,7 @@ function reconcile(prev: Piece[], fen: string, nextId: { current: number }): Pie
   return out
 }
 
-export function Board({ fen, dests, free, onMove, highlights = [], arrows = [], coords }: Props) {
+export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arrows = [], coords }: Props) {
   const { pieces: pieceSet } = useStore().settings
   const el = useRef<HTMLDivElement>(null)
   const nextId = useRef(1)
@@ -91,9 +93,10 @@ export function Board({ fen, dests, free, onMove, highlights = [], arrows = [], 
   }
 
   const down = (e: PointerEvent) => {
-    if (!interactive) return
     const sq = squareAt(e)
     if (!sq) return
+    if (onSquare) return onSquare(sq)
+    if (!interactive) return
     if (selected && selected !== sq && canMove(selected, sq)) {
       setSelected(null)
       onMove!(selected, sq)
@@ -125,7 +128,7 @@ export function Board({ fen, dests, free, onMove, highlights = [], arrows = [], 
   return (
     <div
       ref={el}
-      className={'board' + (interactive ? ' live' : '')}
+      className={'board' + (interactive || onSquare ? ' live' : '')}
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}
