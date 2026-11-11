@@ -43,7 +43,7 @@ registerCommand('which', (args) => {
     'help', 'about', 'experience', 'projects', 'skills', 'education', 'contact',
     'cv', 'theme', 'clear', 'history', 'ls', 'cd', 'pwd', 'cat', 'nano',
     'touch', 'mkdir', 'rm', 'echo', 'whoami', 'date', 'uname', 'hostname',
-    'which', 'grep', 'neofetch', 'matrix', 'snake', 'pong', 'dino', 'games',
+    'which', 'grep', 'neofetch', 'matrix', 'snake', 'pong', 'dino', 'games', 'chess',
   ];
   const cmd = args[0].toLowerCase();
   if (builtins.includes(cmd)) {

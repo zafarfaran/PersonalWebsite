@@ -12,6 +12,7 @@ const portfolioCommands = [
   ['education', 'Academic background'],
   ['contact', 'Social links and email'],
   ['cv', 'Open my CV in a new tab'],
+  ['chess', 'Open my chess opening trainer'],
   ['theme', 'Switch terminal color theme'],
 ];
 

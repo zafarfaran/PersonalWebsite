@@ -5,6 +5,7 @@ import './projects';
 import './skills';
 import './education';
 import './contact';
+import './chess';
 import './theme';
 import './filesystem';
 import './nano';
