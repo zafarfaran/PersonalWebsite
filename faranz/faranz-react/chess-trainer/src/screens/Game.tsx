@@ -3,7 +3,7 @@ import { bookFor, bookReply } from '../book'
 import { Board, type Arrow } from '../components/Board'
 import { MoveList, Shell } from '../components/ui'
 import { clean, fenKey, lastMoveOf, legalDests, replay, sanOf, type Square } from '../chess'
-import { drillLines, sans, type Lesson, type Opening } from '../data'
+import { SIDE_NAME, drillLines, other, sans, type Lesson, type Opening } from '../data'
 import { Engine, LEVELS, chooseMove, type Line } from '../engine'
 import { href } from '../router'
 import { updateSettings, useStore } from '../store'
@@ -36,12 +36,13 @@ const standing = (cp: number) =>
   : cp > -200 ? 'slightly worse for you' : cp > -500 ? 'clearly worse for you' : 'losing'
 
 /**
- * A full game as White. From move one, Black answers from a book of common
- * replies and then a human-like engine opponent takes over until the game
+ * A full game with your side of the opening. From move one, the opponent plays
+ * from a book of common lines and then a human-like engine takes over until the game
  * ends. With `lesson`, the game starts from the end of that line instead.
  * Every move of yours outside the course lines is rated by the engine.
  */
 export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson }) {
+  const them = SIDE_NAME[other(opening.side)]
   const base = useMemo(() => (lesson ? sans(lesson) : []), [lesson])
   const book = useMemo(() => bookFor(opening), [opening])
   const game = useRef(replay(base))
@@ -71,14 +72,14 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   const g = game.current
   const fen = g.fen()
   const over = g.isGameOver() || resigned
-  const blackToMove = g.turn() === 'b'
+  const theirTurn = g.turn() !== opening.side
 
   useEffect(() => {
     if (over || error) return
     const id = ++turnId.current
     const eng = engine.current!
 
-    if (!blackToMove) {
+    if (!theirTurn) {
       // work out the best move while you think: it powers the hint and the rating of your move
       pre.current = eng.analyse(fen, 1, PRE_MS).then(
         lines => (lines[0] ? { fen, line: lines[0] } : null),
@@ -101,12 +102,12 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
         const lines = await eng.analyse(fen, cfg.spread, REPLY_MS)
         if (id !== turnId.current) return
         if (!lines.length) throw new Error('The chess engine did not return a move.')
-        const whiteCp = -lines[0].cp
-        setEvalCp(whiteCp)
+        const myCp = -lines[0].cp
+        setEvalCp(myCp)
         if (mine) {
           const before = await mine.pre
           if (id !== turnId.current) return
-          if (before?.fen === mine.fenBefore) rate(mine, before.line, whiteCp, sanOf(fen, lines[0].from, lines[0].to))
+          if (before?.fen === mine.fenBefore) rate(mine, before.line, myCp, sanOf(fen, lines[0].from, lines[0].to))
           else setFeedback({ tone: 'accent', title: mine.san, text: mine.lead + 'You moved before the engine finished looking, so this move was not rated.' })
         }
         if (!reply) {
@@ -127,11 +128,11 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   }, [fen, over]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Compare your move with the engine's choice and say how much it cost. */
-  function rate(mine: Pending, bestLine: Line, whiteCp: number, refutation: string | null) {
-    const loss = cap(bestLine.cp) - cap(whiteCp)
+  function rate(mine: Pending, bestLine: Line, myCp: number, refutation: string | null) {
+    const loss = cap(bestLine.cp) - cap(myCp)
     const bestSan = sanOf(mine.fenBefore, bestLine.from, bestLine.to)
     const pawns = (loss / 100).toFixed(1)
-    const reply = refutation ? ` Black's strongest reply is ${refutation}.` : ''
+    const reply = refutation ? ` ${them}'s strongest reply is ${refutation}.` : ''
     let fb: Feedback
     if (mine.from === bestLine.from && mine.to === bestLine.to) {
       fb = { tone: 'good', title: `Best move · ${mine.san}`, text: 'That is the engine\'s first choice too.' }
@@ -150,7 +151,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   }
 
   const play = (from: Square, to: Square) => {
-    const course = book.repertoire.get(fenKey(fen))
+    const taught = book.repertoire.get(fenKey(fen)) ?? []
     let san: string
     try {
       san = g.move({ from, to, promotion: 'q' }).san
@@ -158,7 +159,8 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
       return // not a legal move
     }
     setHint(false)
-    if (course && clean(san) === clean(course.step.san)) {
+    const course = taught.find(t => clean(t.step.san) === clean(san))
+    if (course) {
       // a move straight from the lessons needs no engine check
       setFeedback({ tone: 'good', title: `Course move · ${san}`, text: course.step.note ?? '' })
     } else {
@@ -169,7 +171,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
         fenBefore: fen,
         fenAfter: g.fen(),
         pre: pre.current,
-        lead: course ? `The course move here is ${course.step.san} (${course.lesson.title}). ` : '',
+        lead: taught.length ? `The course move here is ${taught[0].step.san} (${taught[0].lesson.title}). ` : '',
       }
       setFeedback({ tone: 'accent', title: `Checking ${san}…`, text: pending.current.lead })
     }
@@ -177,7 +179,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   }
 
   const history = g.history()
-  const canTakeBack = !thinking && !blackToMove && history.length >= base.length + 2
+  const canTakeBack = !thinking && !theirTurn && history.length >= base.length + 2
   const takeBack = () => {
     turnId.current++
     g.undo()
@@ -218,12 +220,12 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   const bestHere = best?.fen === fen ? best.line : null
   const arrows: Arrow[] = hint && bestHere ? [{ from: bestHere.from, to: bestHere.to, color: 'accent' }] : []
   const result = resigned ? 'You resigned.'
-    : g.isCheckmate() ? (blackToMove ? 'Checkmate. You won.' : 'Checkmate. Black won.')
+    : g.isCheckmate() ? (theirTurn ? 'Checkmate. You won.' : `Checkmate. ${them} won.`)
     : g.isStalemate() ? 'Stalemate. The game is a draw.'
     : g.isDraw() ? 'The game is a draw.'
     : ''
-  const status = result || (thinking ? 'Black is thinking…' : g.inCheck() ? 'You are in check.' : 'Your move')
-  const won = g.isCheckmate() && blackToMove
+  const status = result || (thinking ? `${them} is thinking…` : g.inCheck() ? 'You are in check.' : 'Your move')
+  const won = g.isCheckmate() && theirTurn
   const tally = [count(slips.inaccuracy, 'inaccuracy', 'inaccuracies'), count(slips.mistake, 'mistake', 'mistakes'), count(slips.blunder, 'blunder', 'blunders')].join(', ')
 
   return (
@@ -238,7 +240,8 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
         <Board
           fen={fen}
           coords
-          dests={!blackToMove && !over ? legalDests(fen) : undefined}
+          flip={opening.side === 'b'}
+          dests={!theirTurn && !over ? legalDests(fen) : undefined}
           onMove={play}
           highlights={last ? [{ sq: last.from, kind: 'last' }, { sq: last.to, kind: 'last' }] : []}
           arrows={arrows}
@@ -269,7 +272,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
                 <p>
                   {lesson
                     ? 'The opening is over. From here there is no single right move, so play the position. I will rate each move you make.'
-                    : `Play a whole game with the ${opening.name}. Black answers the way real opponents commonly do, so each game goes a different way. I will rate each move once you leave the course lines.`}
+                    : `Play a whole game with the ${opening.name}. ${them} plays the way real opponents commonly do, so each game goes a different way. I will rate each move once you leave the course lines.`}
                 </p>
               </>
             )}
@@ -277,7 +280,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
               <p className="key">
                 {closest?.plan ? (
                   <>
-                    <b>Black's setup:</b> {closest.reply}. <b>Your plan:</b> {closest.plan}
+                    <b>{them}'s setup:</b> {closest.reply}. <b>Your plan:</b> {closest.plan}
                   </>
                 ) : (
                   <>
@@ -318,7 +321,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
           </div>
 
           <div className="actions">
-            <button className="btn" onClick={() => setHint(true)} disabled={over || blackToMove || !bestHere || hint}>Hint</button>
+            <button className="btn" onClick={() => setHint(true)} disabled={over || theirTurn || !bestHere || hint}>Hint</button>
             <button className="btn" onClick={takeBack} disabled={!canTakeBack}>Take back</button>
             <button className="btn" onClick={newGame}>New game</button>
             {!over && <button className="btn" onClick={() => setResigned(true)}>Resign</button>}

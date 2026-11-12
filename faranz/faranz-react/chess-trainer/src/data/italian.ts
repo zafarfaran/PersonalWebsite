@@ -36,6 +36,7 @@ export const italian: Opening = {
   name: 'Italian Game',
   tagline: 'Fast development and open play',
   firstMoves: '1. e4 e5 · 2. Nf3 Nc6 · 3. Bc4',
+  side: 'w',
   setupFen: '8/8/8/8/4P3/1BPP1N1P/PP1N1PP1/R1BQR1K1',
   setupNote: 'Pawns on c3, d3 and e4, plus h3. Bishop on b3, rook on e1, knights on f3 and d2. King castled short.',
   cardLesson: 'italian-main',

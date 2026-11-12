@@ -24,6 +24,8 @@ interface Props {
   highlights?: Highlight[]
   arrows?: Arrow[]
   coords?: boolean
+  /** Show the board from Black's side. */
+  flip?: boolean
 }
 
 interface Piece {
@@ -33,8 +35,10 @@ interface Piece {
 }
 
 const FILES = 'abcdefgh'
-const xy = (sq: Square) => [FILES.indexOf(sq[0]), 8 - +sq[1]] as const
+/** Column and row of a square on screen, counted from the top left. */
+const xy = (sq: Square, flip = false) => (flip ? [7 - FILES.indexOf(sq[0]), +sq[1] - 1] : [FILES.indexOf(sq[0]), 8 - +sq[1]]) as [number, number]
 const SQUARES = Array.from({ length: 64 }, (_, i) => FILES[i % 8] + (8 - Math.floor(i / 8)))
+const FLIPPED = [...SQUARES].reverse()
 
 /**
  * Carry piece identities from one position to the next so that a moved piece
@@ -65,7 +69,7 @@ function reconcile(prev: Piece[], fen: string, nextId: { current: number }): Pie
   return out
 }
 
-export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arrows = [], coords }: Props) {
+export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arrows = [], coords, flip = false }: Props) {
   const { pieces: pieceSet } = useStore().settings
   const el = useRef<HTMLDivElement>(null)
   const nextId = useRef(1)
@@ -89,7 +93,8 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
     const r = el.current!.getBoundingClientRect()
     const f = Math.floor(((e.clientX - r.left) / r.width) * 8)
     const rank = Math.floor(((e.clientY - r.top) / r.height) * 8)
-    return f < 0 || f > 7 || rank < 0 || rank > 7 ? null : FILES[f] + (8 - rank)
+    if (f < 0 || f > 7 || rank < 0 || rank > 7) return null
+    return flip ? FILES[7 - f] + (rank + 1) : FILES[f] + (8 - rank)
   }
 
   const down = (e: PointerEvent) => {
@@ -135,20 +140,20 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
       onPointerCancel={() => setDrag(null)}
     >
       <div className="squares">
-        {SQUARES.map((sq, i) => {
-          const dark = (i + Math.floor(i / 8)) % 2 === 1
+        {(flip ? FLIPPED : SQUARES).map(sq => {
+          const dark = (FILES.indexOf(sq[0]) + +sq[1]) % 2 === 1
           const cls = ['sq', dark ? 'dark' : '', hl.get(sq) ?? '', selected === sq ? 'sel' : ''].filter(Boolean).join(' ')
           return (
             <div key={sq} className={cls}>
-              {coords && sq[1] === '1' && <span className="co file">{sq[0]}</span>}
-              {coords && sq[0] === 'a' && <span className="co rank">{sq[1]}</span>}
+              {coords && sq[1] === (flip ? '8' : '1') && <span className="co file">{sq[0]}</span>}
+              {coords && sq[0] === (flip ? 'h' : 'a') && <span className="co rank">{sq[1]}</span>}
               {targets.includes(sq) && <span className={at(sq) ? 'ring' : 'dot'} />}
             </div>
           )
         })}
       </div>
       {pieces.map(p => {
-        const [x, y] = xy(p.sq)
+        const [x, y] = xy(p.sq, flip)
         const dragging = drag?.sq === p.sq
         return (
           <div
@@ -166,8 +171,8 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
       {arrows.length > 0 && (
         <svg viewBox="0 0 8 8" className="arrows">
           {arrows.map((a, i) => {
-            const [fx, fy] = xy(a.from)
-            const [tx, ty] = xy(a.to)
+            const [fx, fy] = xy(a.from, flip)
+            const [tx, ty] = xy(a.to, flip)
             const [x1, y1, x2, y2] = [fx + 0.5, fy + 0.5, tx + 0.5, ty + 0.5]
             const len = Math.hypot(x2 - x1, y2 - y1) || 1
             const [ux, uy] = [(x2 - x1) / len, (y2 - y1) / len]

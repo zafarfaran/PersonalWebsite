@@ -26,9 +26,9 @@ export function Learn({ opening, lesson }: { opening: Opening; lesson: Lesson })
       right={<span className="count">Lesson {i + 1} of {opening.lessons.length}</span>}
     >
       {lesson.kind === 'demo' ? (
-        <Demo key={lesson.id} lesson={lesson} onDone={done} after={after} />
+        <Demo key={lesson.id} lesson={lesson} side={opening.side} onDone={done} after={after} />
       ) : (
-        <Drill key={lesson.id} lesson={lesson} mode="learn" onDone={done} after={after} />
+        <Drill key={lesson.id} lesson={lesson} side={opening.side} mode="learn" onDone={done} after={after} />
       )}
     </Shell>
   )

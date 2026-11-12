@@ -1,7 +1,7 @@
 import { Board } from '../components/Board'
 import { Meter } from '../components/ui'
 import { replay } from '../chess'
-import { CHAPTERS, OPENINGS, drillLines, lessonById, openingById, sans, type Opening } from '../data'
+import { OPENINGS, SIDE_NAME, chapterName, drillLines, lessonById, openingById, sans, type Opening, type Side } from '../data'
 import { dueLines, lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
 import { streak } from '../srs'
@@ -19,7 +19,7 @@ export function Home() {
         <h1>
           <span className="good">~/chess</span> <span className="accent">$</span> opening-trainer
         </h1>
-        <p>Two openings for White, learned one idea at a time: lessons, drills, memory training and practice matches.</p>
+        <p>Two openings for White and two defences for Black, learned one idea at a time: lessons, drills, memory training and practice games.</p>
       </div>
 
       <div className="card row">
@@ -47,11 +47,25 @@ export function Home() {
         <span className="btn">Open</span>
       </a>
 
-      <div className="openings">
-        {OPENINGS.map(o => (
-          <OpeningCard key={o.id} o={o} />
-        ))}
-      </div>
+      <a className="card row boardcard" href={href('guide')}>
+        <div className="grow">
+          <strong>What to play against what</strong>
+          <br />
+          <span className="note">A lookup table: every opening and setup your opponent can choose, and the line that answers it.</span>
+        </div>
+        <span className="btn">Open</span>
+      </a>
+
+      {(['w', 'b'] as Side[]).map(side => (
+        <section key={side}>
+          <h2 className="sidehead">Play as {SIDE_NAME[side]}</h2>
+          <div className="openings">
+            {OPENINGS.filter(o => o.side === side).map(o => (
+              <OpeningCard key={o.id} o={o} />
+            ))}
+          </div>
+        </section>
+      ))}
     </main>
   )
 }
@@ -64,7 +78,7 @@ function OpeningCard({ o }: { o: Opening }) {
   return (
     <div className="card opening">
       <a href={href('o', o.id)} aria-label={`${o.name} lessons`}>
-        <Board fen={fen} />
+        <Board fen={fen} flip={o.side === 'b'} />
       </a>
       <div>
         <h2>{o.name}</h2>
@@ -75,12 +89,12 @@ function OpeningCard({ o }: { o: Opening }) {
           <a className="btn primary" href={href('learn', next.id)}>{done === 0 ? 'Start' : done === o.lessons.length ? 'Revisit' : 'Continue'}</a>
           <a className="btn" href={href('o', o.id)}>Lessons</a>
         </div>
-        <div className="note">Next: {CHAPTERS[next.chapter]} · {next.title}</div>
+        <div className="note">Next: {chapterName(next.chapter, o.side)} · {next.title}</div>
       </div>
       <div className="modes">
         <a className="mode" href={href('practise', 'o', o.id)}><b>Practise</b><span>Drill the lines from memory</span></a>
-        <a className="mode" href={href('match', o.id)}><b>Match</b><span>Opening only: Black picks a different reply each time</span></a>
-        <a className="mode" href={href('game', o.id)}><b>Full game</b><span>Play to the end against common replies, with every move rated</span></a>
+        <a className="mode" href={href('match', o.id)}><b>Match</b><span>Opening only: {SIDE_NAME[o.side === 'w' ? 'b' : 'w']} picks a different line each time</span></a>
+        <a className="mode" href={href('game', o.id)}><b>Full game</b><span>Play to the end against common lines, with every move rated</span></a>
         <a className="mode" href={href('memorise', o.id)}><b>Memorise</b><span>Quick-fire positions and the setup</span></a>
       </div>
     </div>

@@ -55,6 +55,7 @@ export function Practise({ kind, id }: { kind: string; id?: string }) {
       <Drill
         key={`${i}-${run}`}
         lesson={lesson}
+        side={opening.side}
         mode="practise"
         onDone={onDone}
         after={

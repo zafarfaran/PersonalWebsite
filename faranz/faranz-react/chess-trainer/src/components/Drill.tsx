@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { clean, lastMoveOf, legalDests, moveLabel, replay, sanOf, squaresOf, type Square } from '../chess'
-import { sans, type Lesson } from '../data'
+import { SIDE_NAME, other, sans, type Lesson, type Side } from '../data'
 import { Board, type Arrow, type Highlight } from './Board'
 import { MoveList } from './ui'
 
 interface Props {
   lesson: Lesson
+  /** The colour you play. The other side's moves are played for you. */
+  side: Side
   /** learn: the move is shown and explained first. practise and match: from memory. */
   mode: 'learn' | 'practise' | 'match'
-  /** Match only: the lines Black could be playing, used to hide the line's name until it is certain. */
+  /** Match only: the lines the opponent could be playing, used to hide the line's name until it is certain. */
   pool?: Lesson[]
   onDone: (cleanRun: boolean) => void
   /** Buttons shown once the line is finished. */
@@ -26,8 +28,8 @@ interface Feedback {
 const lookup = (map: Record<string, string> | undefined, san: string) =>
   Object.entries(map ?? {}).find(([k]) => clean(k) === clean(san))?.[1]
 
-/** Plays through one line: you move White, Black's replies are played for you. */
-export function Drill({ lesson, mode, pool, onDone, after }: Props) {
+/** Plays through one line: you move your side, the opponent's replies are played for you. */
+export function Drill({ lesson, side, mode, pool, onDone, after }: Props) {
   const line = useMemo(() => sans(lesson), [lesson])
   const [ply, setPly] = useState(0)
   const [fb, setFb] = useState<Feedback | null>(null)
@@ -37,17 +39,19 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
   const game = useMemo(() => replay(line, ply), [line, ply])
   const fen = game.fen()
   const done = ply >= line.length
-  const yourMove = !done && ply % 2 === 0
+  const mine = side === 'w' ? 0 : 1 // parity of the plies you play
+  const them = SIDE_NAME[other(side)]
+  const yourMove = !done && ply % 2 === mine
   const step = lesson.moves[ply]
   const target = yourMove ? squaresOf(fen, step.san) : null
   const learn = mode === 'learn'
 
-  // Black replies after a short pause
+  // the opponent moves after a short pause
   useEffect(() => {
-    if (done || ply % 2 === 0) return
+    if (done || ply % 2 === mine) return
     const t = setTimeout(() => setPly(p => p + 1), 650)
     return () => clearTimeout(t)
-  }, [ply, done])
+  }, [ply, done, mine])
 
   const reported = useRef(false)
   useEffect(() => {
@@ -96,19 +100,20 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
   const candidates = pool?.filter(l => sans(l).slice(0, ply).join() === line.slice(0, ply).join()) ?? []
   const revealed = done || candidates.length <= 1
 
-  const prevWhite = ply >= 1 ? lesson.moves[ply % 2 === 0 ? ply - 2 : ply - 1] : null
-  const prevWhitePly = ply % 2 === 0 ? ply - 2 : ply - 1
-  const prevBlack = ply >= 2 && ply % 2 === 0 ? lesson.moves[ply - 1] : null
+  // your most recent move, and the opponent's answer to it once it has been played
+  const prevMinePly = ply % 2 === mine ? ply - 2 : ply - 1
+  const prevMine = prevMinePly >= 0 ? lesson.moves[prevMinePly] : null
+  const prevTheirs = ply >= 1 && ply % 2 === mine ? lesson.moves[ply - 1] : null
 
   return (
     <div className="trainer">
-      <Board fen={fen} coords dests={yourMove ? legalDests(fen) : undefined} onMove={play} highlights={highlights} arrows={arrows} />
+      <Board fen={fen} coords flip={side === 'b'} dests={yourMove ? legalDests(fen) : undefined} onMove={play} highlights={highlights} arrows={arrows} />
       <div className="panel">
         {mode === 'match' && (
           <div className="card">
-            <div className="eyebrow">This game Black chose</div>
+            <div className="eyebrow">This game {them} chose</div>
             <div className={'move' + (revealed ? '' : ' muted')}>{revealed ? lesson.reply : 'Not clear yet'}</div>
-            {!revealed && <p className="muted">{candidates.length} replies are still possible. Play your moves and see what Black does.</p>}
+            {!revealed && <p className="muted">{candidates.length} lines are still possible. Play your moves and see what {them} does.</p>}
           </div>
         )}
 
@@ -129,10 +134,10 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
         ) : learn ? (
           <div className="card">
             <div className="eyebrow">Coach</div>
-            {ply === 0 && <p>{lesson.intro}</p>}
-            {prevBlack && (
+            {ply <= mine && <p>{lesson.intro}</p>}
+            {prevTheirs && (
               <p className="muted">
-                Black played {moveLabel(ply - 1)} {prevBlack.san}. {prevBlack.note}
+                {them} played {moveLabel(ply - 1)} {prevTheirs.san}. {prevTheirs.note}
               </p>
             )}
             {yourMove ? (
@@ -143,21 +148,21 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
                 {fb && <p className={fb.kind === 'wrong' ? 'bad' : 'accent'}>{fb.san}: {fb.text}</p>}
               </>
             ) : (
-              <p className="muted">Black is replying…</p>
+              <p className="muted">{them} is moving…</p>
             )}
           </div>
         ) : (
           <div className="card">
-            {prevWhite && (
+            {prevMine && (
               <>
-                <div className="eyebrow good">Correct · {moveLabel(prevWhitePly)} {prevWhite.san}</div>
-                <p>{prevWhite.note}</p>
-                {prevWhite.key && <p className="key"><b>Key idea:</b> {prevWhite.key}</p>}
+                <div className="eyebrow good">Correct · {moveLabel(prevMinePly)} {prevMine.san}</div>
+                <p>{prevMine.note}</p>
+                {prevMine.key && <p className="key"><b>Key idea:</b> {prevMine.key}</p>}
               </>
             )}
-            {prevBlack && (
+            {prevTheirs && (
               <p className="muted">
-                Black replied {moveLabel(ply - 1)} {prevBlack.san}. {prevBlack.note}
+                {them} played {moveLabel(ply - 1)} {prevTheirs.san}. {prevTheirs.note}
               </p>
             )}
             {yourMove ? (
@@ -175,7 +180,7 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
                 {hint === 2 && <p className="accent">The move is {moveLabel(ply)} {step.san}. Play it on the board.</p>}
               </>
             ) : (
-              <p className="muted">Black is replying…</p>
+              <p className="muted">{them} is moving…</p>
             )}
           </div>
         )}
@@ -199,7 +204,7 @@ export function Drill({ lesson, mode, pool, onDone, after }: Props) {
 }
 
 /** Step through a line with Next and Back; both sides are played for you. */
-export function Demo({ lesson, onDone, after }: { lesson: Lesson; onDone: () => void; after: ReactNode }) {
+export function Demo({ lesson, side, onDone, after }: { lesson: Lesson; side: Side; onDone: () => void; after: ReactNode }) {
   const line = useMemo(() => sans(lesson), [lesson])
   const [ply, setPly] = useState(0)
   const game = useMemo(() => replay(line, ply), [line, ply])
@@ -226,7 +231,7 @@ export function Demo({ lesson, onDone, after }: { lesson: Lesson; onDone: () => 
 
   return (
     <div className="trainer">
-      <Board fen={game.fen()} coords highlights={last ? [{ sq: last.from, kind: 'last' }, { sq: last.to, kind: 'last' }] : []} />
+      <Board fen={game.fen()} coords flip={side === 'b'} highlights={last ? [{ sq: last.from, kind: 'last' }, { sq: last.to, kind: 'last' }] : []} />
       <div className="panel">
         <div className="card">
           <div className="eyebrow">Coach · watch and step through</div>

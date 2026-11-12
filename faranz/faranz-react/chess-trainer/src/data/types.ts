@@ -11,14 +11,16 @@ export interface Step {
   mistakes?: Record<string, string>
 }
 
-export type Chapter = 'idea' | 'main' | 'replies' | 'traps'
+export type Side = 'w' | 'b'
+
+export type Chapter = 'idea' | 'main' | 'replies' | 'traps' | 'variations'
 
 export interface Lesson {
   id: string
   chapter: Chapter
   title: string
   blurb: string
-  /** guided: you play White's moves. demo: you watch both sides. */
+  /** guided: you play your side's moves. demo: you watch both sides. */
   kind: 'guided' | 'demo'
   /** Whether the line is drilled in Practise, Match and Memorise. */
   drill: boolean
@@ -27,7 +29,7 @@ export interface Lesson {
   outro: string
   /** What to aim for once the line ends (shown when playing on). */
   plan?: string
-  /** Short name for Black's choice, revealed during a match. */
+  /** Short name for the opponent's choice, revealed during a match. */
   reply?: string
 }
 
@@ -36,7 +38,9 @@ export interface Opening {
   name: string
   tagline: string
   firstMoves: string
-  /** White's finished setup (white pieces only), used by the setup builder. */
+  /** The colour you play in this opening. */
+  side: Side
+  /** Your finished setup (your pieces only), used by the setup builder. */
   setupFen: string
   setupNote: string
   /** Lesson whose final position is shown on the home card. */
@@ -49,7 +53,14 @@ export const CHAPTERS: Record<Chapter, string> = {
   main: 'Main line',
   replies: "Black's replies",
   traps: 'Traps and mistakes',
+  variations: 'Other variations to try',
 }
+
+/** Chapter heading for an opening: the "replies" belong to whoever you are playing against. */
+export const chapterName = (ch: Chapter, side: Side) => (ch === 'replies' && side === 'b' ? "White's other systems" : CHAPTERS[ch])
+
+export const SIDE_NAME: Record<Side, string> = { w: 'White', b: 'Black' }
+export const other = (side: Side): Side => (side === 'w' ? 'b' : 'w')
 
 /** Shorthand used by the opening files. */
 export const m = (san: string, note?: string, extra: Omit<Step, 'san' | 'note'> = {}): Step => ({ san, note, ...extra })

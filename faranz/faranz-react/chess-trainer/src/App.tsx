@@ -7,6 +7,7 @@ import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
 import { OpeningMap } from './screens/OpeningMap'
 import { Game } from './screens/Game'
+import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
 import { Vision } from './screens/Vision'
@@ -21,6 +22,8 @@ function Screen({ route }: { route: string[] }) {
       return <Progress />
     case 'board':
       return <Vision />
+    case 'guide':
+      return <Guide />
     case 'game': {
       const o = openingById(a ?? '')
       return o ? <Game key={o.id} opening={o} /> : <NotFound what="opening" />
@@ -68,6 +71,7 @@ export function App() {
         </a>
         <nav>
           <a href={href()} className={route.length === 0 ? 'on' : ''}>Home</a>
+          <a href={href('guide')} className={route[0] === 'guide' ? 'on' : ''}>Guide</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
           <a href="https://faranz.com/">faranz.com ↗</a>

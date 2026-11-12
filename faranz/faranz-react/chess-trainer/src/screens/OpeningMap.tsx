@@ -1,6 +1,6 @@
 import { Board } from '../components/Board'
 import { Meter, Shell } from '../components/ui'
-import { CHAPTERS, type Chapter, type Opening } from '../data'
+import { CHAPTERS, chapterName, type Chapter, type Opening } from '../data'
 import { lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
 import { useStore } from '../store'
@@ -25,9 +25,9 @@ export function OpeningMap({ o }: { o: Opening }) {
     >
       <div className="mapwrap">
         <div>
-          {(Object.keys(CHAPTERS) as Chapter[]).map(ch => (
+          {(Object.keys(CHAPTERS) as Chapter[]).filter(ch => o.lessons.some(l => l.chapter === ch)).map(ch => (
             <div className="chapter" key={ch}>
-              <h2>{CHAPTERS[ch]}</h2>
+              <h2>{chapterName(ch, o.side)}</h2>
               {o.lessons.filter(l => l.chapter === ch).map(l => {
                 n++
                 const isDone = !!s.lessons[l.id]
@@ -48,7 +48,7 @@ export function OpeningMap({ o }: { o: Opening }) {
         </div>
         <div className="card side">
           <div className="eyebrow">Your target setup</div>
-          <Board fen={o.setupFen + ' w - - 0 1'} />
+          <Board fen={o.setupFen + ' w - - 0 1'} flip={o.side === 'b'} />
           <p className="note">{o.setupNote}</p>
           <a className="btn" href={href('practise', 'o', o.id)}>Practise the lines</a>
           <a className="btn" href={href('match', o.id)}>Play a practice match</a>

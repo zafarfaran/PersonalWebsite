@@ -33,13 +33,13 @@ export interface Card {
   last: { from: Square; to: Square } | null
 }
 
-/** One memory card per distinct position in which White has a move to remember. */
+/** One memory card per distinct position in which you have a move to remember. */
 export function cardsFor(o: Opening): Card[] {
   const seen = new Set<string>()
   const cards: Card[] = []
   for (const lesson of drillLines(o)) {
     const line = sans(lesson)
-    for (let ply = 0; ply < line.length; ply += 2) {
+    for (let ply = o.side === 'w' ? 0 : 1; ply < line.length; ply += 2) {
       const game = replay(line, ply)
       const key = fenKey(game.fen())
       if (seen.has(key)) continue

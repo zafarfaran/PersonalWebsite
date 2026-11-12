@@ -15,6 +15,7 @@ export const london: Opening = {
   name: 'London System',
   tagline: 'One setup against almost everything',
   firstMoves: '1. d4 · 2. Bf4 · 3. e3',
+  side: 'w',
   setupFen: '8/8/8/8/3P1B2/2PBPN2/PP1N1PPP/R2Q1RK1',
   setupNote: 'Pawns on c3, d4 and e3. Bishops on f4 and d3. Knights on f3 and d2. King castled short.',
   cardLesson: 'london-setup',

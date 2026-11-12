@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Drill } from '../components/Drill'
 import { Shell } from '../components/ui'
-import { drillLines, type Lesson, type Opening } from '../data'
+import { SIDE_NAME, other, repertoireLines, type Lesson, type Opening } from '../data'
 import { learnedLines } from '../lib'
 import { href } from '../router'
 import { getState, recordLine, useStore } from '../store'
@@ -13,12 +13,13 @@ const pick = (pool: Lesson[], avoid?: Lesson) => {
   return options[Math.floor(Math.random() * options.length)]
 }
 
-/** A practice game: Black chooses one of the replies at random and you only find out which as it is played. */
+/** A practice game: the opponent chooses one of the lines at random and you only find out which as it is played. */
 export function Match({ o }: { o: Opening }) {
   const s = useStore()
-  const learned = learnedLines(o, s)
-  const [scope, setScope] = useState<Scope>(() => (learnedLines(o, getState()).length >= 2 ? 'learned' : 'all'))
-  const pool = scope === 'learned' && learned.length ? learned : drillLines(o)
+  const them = SIDE_NAME[other(o.side)]
+  const learned = learnedLines(o, s).filter(l => l.chapter !== 'variations')
+  const [scope, setScope] = useState<Scope>(() => (learnedLines(o, getState()).filter(l => l.chapter !== 'variations').length >= 2 ? 'learned' : 'all'))
+  const pool = scope === 'learned' && learned.length ? learned : repertoireLines(o)
   const [lesson, setLesson] = useState(() => pick(pool))
   const [game, setGame] = useState(1)
 
@@ -28,7 +29,7 @@ export function Match({ o }: { o: Opening }) {
   }
   const changeScope = (next: Scope) => {
     setScope(next)
-    newMatch(next === 'learned' && learned.length ? learned : drillLines(o))
+    newMatch(next === 'learned' && learned.length ? learned : repertoireLines(o))
   }
 
   return (
@@ -36,6 +37,7 @@ export function Match({ o }: { o: Opening }) {
       <Drill
         key={game}
         lesson={lesson}
+        side={o.side}
         mode="match"
         pool={pool}
         onDone={cleanRun => recordLine(lesson.id, cleanRun, 'match')}
@@ -49,7 +51,7 @@ export function Match({ o }: { o: Opening }) {
 
       <div className="below">
         <div className="card">
-          <div className="eyebrow">Replies Black can choose from</div>
+          <div className="eyebrow">Lines {them} can choose from</div>
           {pool.map(l => {
             const st = s.lines[l.id]
             return (
@@ -70,13 +72,13 @@ export function Match({ o }: { o: Opening }) {
         <div className="card">
           <div className="eyebrow">Match settings</div>
           <div className="setting">
-            <span>Black plays</span>
+            <span>{them} plays</span>
             <div className="seg">
               <button className={scope === 'learned' ? 'on' : ''} onClick={() => changeScope('learned')} disabled={!learned.length}>
                 Lines I've learned ({learned.length})
               </button>
               <button className={scope === 'all' ? 'on' : ''} onClick={() => changeScope('all')}>
-                Every reply ({drillLines(o).length})
+                Every line ({repertoireLines(o).length})
               </button>
             </div>
           </div>

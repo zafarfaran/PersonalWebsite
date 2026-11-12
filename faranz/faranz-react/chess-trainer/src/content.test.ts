@@ -13,7 +13,8 @@ describe('opening content', () => {
       const mv = c.move(step.san) // throws on an illegal move
       expect(mv.san, `${l.id} move ${i + 1}`).toBe(step.san)
     })
-    expect(l.moves.length % 2, 'lines end on a White move').toBe(l.kind === 'guided' ? 1 : l.moves.length % 2)
+    const yours = lessonById(l.id)!.opening.side === 'w' ? 1 : 0
+    expect(l.moves.length % 2, 'guided lines end on your own move').toBe(l.kind === 'guided' ? yours : l.moves.length % 2)
   })
 
   it('alternatives and named mistakes are legal moves that differ from the answer', () => {
@@ -31,10 +32,10 @@ describe('opening content', () => {
   it('the repertoire never asks for two different moves in the same position', () => {
     for (const o of OPENINGS) {
       const seen = new Map<string, string>()
-      for (const l of o.lessons.filter(l => l.kind === 'guided')) {
+      for (const l of o.lessons.filter(l => l.kind === 'guided' && l.chapter !== 'variations')) {
         const c = new Chess()
         l.moves.forEach((step, i) => {
-          if (i % 2 === 0) {
+          if (c.turn() === o.side) {
             const key = fenKey(c.fen())
             const prev = seen.get(key)
             expect(prev ?? step.san, `${l.id} ply ${i}`).toBe(step.san)
@@ -59,8 +60,8 @@ describe('opening content', () => {
   it('the setup builder target matches the position the card lesson reaches', () => {
     for (const o of OPENINGS) {
       const final = placementOf(replay(sans(lessonById(o.cardLesson)!.lesson)).fen())
-      const white = Object.fromEntries(Object.entries(final).filter(([, p]) => p[0] === 'w'))
-      expect(placementFen(white), o.id).toBe(o.setupFen)
+      const yours = Object.fromEntries(Object.entries(final).filter(([, p]) => p[0] === o.side))
+      expect(placementFen(yours), o.id).toBe(o.setupFen)
     }
   })
 })
@@ -103,7 +104,8 @@ describe('full-game opening book', () => {
       for (const [key, options] of book.replies) {
         for (const san of options.keys()) expect(() => new Chess(key + ' 0 1').move(san), `${key} ${san}`).not.toThrow()
       }
-      const first = replay([sans(o.lessons[0])[0]]).fen()
+      // the first position in which the opponent has to move
+      const first = replay(o.side === 'w' ? [sans(o.lessons[0])[0]] : []).fen()
       const seen = new Set(Array.from({ length: 200 }, () => bookReply(o, first)))
       expect(seen.has(null)).toBe(false)
       if (o.id === 'london') expect(seen.size).toBeGreaterThanOrEqual(4)
@@ -112,7 +114,8 @@ describe('full-game opening book', () => {
 
   it('knows the course move for the starting position and nothing for an unknown one', () => {
     for (const o of OPENINGS) {
-      expect(bookFor(o).repertoire.get(fenKey(new Chess().fen()))!.step.san).toBe(sans(o.lessons[0])[0])
+      const yourFirst = replay(o.side === 'w' ? [] : [sans(o.lessons[0])[0]]).fen()
+      expect(bookFor(o).repertoire.get(fenKey(yourFirst))![0].step.san).toBe(sans(o.lessons[0])[o.side === 'w' ? 0 : 1])
       expect(bookReply(o, '8/8/8/8/8/8/8/K6k b - - 0 1')).toBeNull()
     }
   })
@@ -133,6 +136,22 @@ describe('engine helpers', () => {
     expect(new Set(Array.from({ length: 300 }, () => chooseMove(lines, 1).to)).size).toBeGreaterThan(1)
     const mate = [{ from: 'a1', to: 'a2', cp: 9990 }, { from: 'a1', to: 'a3', cp: 500 }]
     expect(new Set(Array.from({ length: 50 }, () => chooseMove(mate, 1).to))).toEqual(new Set(['a2']))
+  })
+})
+
+import { GUIDE } from './screens/Guide'
+
+describe('guide', () => {
+  it('links only to lessons and openings that exist', () => {
+    for (const block of GUIDE.flatMap(s => s.blocks)) {
+      if (block.opening) expect(OPENINGS.some(o => o.id === block.opening), block.opening).toBe(true)
+      for (const row of block.rows) if (row.lesson) expect(lessonById(row.lesson), row.lesson).toBeTruthy()
+    }
+  })
+
+  it('has a row for every drilled line of the Black openings', () => {
+    const linked = new Set(GUIDE.flatMap(s => s.blocks).flatMap(b => b.rows.map(r => r.lesson)))
+    for (const o of OPENINGS.filter(o => o.side === 'b')) for (const l of drillLines(o)) expect(linked.has(l.id), l.id).toBe(true)
   })
 })
 

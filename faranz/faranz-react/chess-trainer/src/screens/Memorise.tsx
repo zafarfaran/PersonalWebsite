@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Board, type Arrow, type Highlight } from '../components/Board'
 import { Meter, Shell } from '../components/ui'
 import { clean, legalDests, moveLabel, placementFen, placementOf, sanOf, squaresOf, type Square } from '../chess'
-import type { Opening } from '../data'
+import { SIDE_NAME, type Opening } from '../data'
 import { cardsFor, shuffle, type Card } from '../lib'
 import { href } from '../router'
 import { isDue, strength } from '../srs'
@@ -102,13 +102,13 @@ function MoveCards({ o, cards }: { o: Opening; cards: Card[] }) {
 
   return (
     <div className="trainer">
-      <Board key={card.key} fen={card.fen} coords dests={state === 'right' ? undefined : legalDests(card.fen)} onMove={play} highlights={highlights} arrows={arrows} />
+      <Board key={card.key} fen={card.fen} coords flip={o.side === 'b'} dests={state === 'right' ? undefined : legalDests(card.fen)} onMove={play} highlights={highlights} arrows={arrows} />
       <div className="panel">
         <div className="card">
           <div className="eyebrow">Position {i + 1} of {deck.length}</div>
           {state === 'ask' && (
             <>
-              <div className="move">White to play</div>
+              <div className="move">{SIDE_NAME[o.side]} to play</div>
               <p>What is your move here? Play it on the board. No hints: this is a memory test.</p>
             </>
           )}
@@ -135,11 +135,11 @@ function MoveCards({ o, cards }: { o: Opening; cards: Card[] }) {
   )
 }
 
-const START_ROWS = '8/8/8/8/8/8/PPPPPPPP/RNBQKBNR'
+const START_ROWS = { w: '8/8/8/8/8/8/PPPPPPPP/RNBQKBNR', b: 'rnbqkbnr/pppppppp/8/8/8/8/8/8' }
 
 function SetupBuilder({ o }: { o: Opening }) {
   const target = useMemo(() => placementOf(o.setupFen), [o])
-  const [pieces, setPieces] = useState(() => placementOf(START_ROWS))
+  const [pieces, setPieces] = useState(() => placementOf(START_ROWS[o.side]))
   const [result, setResult] = useState<'building' | 'checked' | 'solved' | 'shown'>('building')
   const built = useStore().setups[o.id] ?? 0
 
@@ -158,7 +158,7 @@ function SetupBuilder({ o }: { o: Opening }) {
     } else setResult('checked')
   }
   const reset = () => {
-    setPieces(placementOf(START_ROWS))
+    setPieces(placementOf(START_ROWS[o.side]))
     setResult('building')
   }
 
@@ -171,6 +171,7 @@ function SetupBuilder({ o }: { o: Opening }) {
       <Board
         fen={(shown ? o.setupFen : placementFen(pieces)) + ' w - - 0 1'}
         coords
+        flip={o.side === 'b'}
         free={!shown && result !== 'solved'}
         onMove={move}
         highlights={highlights}

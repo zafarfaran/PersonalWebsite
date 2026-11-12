@@ -199,3 +199,19 @@ td .meter { width: 110px; }
 .primer b { color: var(--text); }
 .result { max-width: 640px; }
 .panel .meter { width: 100%; margin-bottom: 8px; }
+
+/* guide and home sections */
+.sidehead { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px; }
+.guide { margin-bottom: 30px; }
+.guide > h2 { font-size: 18px; margin-bottom: 6px; }
+.guide > p { max-width: 78ch; margin-bottom: 14px; }
+.guide .card { margin-bottom: 14px; }
+.guidehead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.guide .reply { align-items: flex-start; }
+.guide .seen { flex: 0 0 34%; }
+.guide .seen small { display: block; color: var(--muted); }
+.guide .reply .btn, .guide .reply .pill { flex: none; }
+@media (max-width: 700px) {
+  .guide .reply { flex-wrap: wrap; }
+  .guide .seen { flex: 1 1 100%; }
+}
