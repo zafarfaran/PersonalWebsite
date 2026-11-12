@@ -18,6 +18,9 @@ const COMBO_DEFS: ComboDef[] = [
   { lesson: 'sicilian-levenfish-trap', first: 'Bb5+', goal: 'Black\'s knight has wandered to g4. Win the queen in two moves.' },
   { lesson: 'london-poisoned-pawn', first: 'a3', goal: 'Black\'s queen wants the pawn on b2. Make one quiet move so that taking it costs her the queen, then spring the trap.' },
   { lesson: 'london-b2-trap', first: 'Bf5', goal: 'Offer a piece so that taking it costs White the rook on a1. Two moves.' },
+  { lesson: 'sicilian-f4-qb6', first: 'Nxe4', goal: 'White has just stepped out of the pin with the king. Win a pawn in three moves.' },
+  { lesson: 'italian-early-d5', first: 'Qb3', goal: 'Black has opened the centre before castling. Win a bishop in three moves. Black will defend the knight on d5 with the other knight.' },
+  { lesson: 'caro-two-knights-trap', first: 'Nxf7', goal: 'Knight on e5, bishop on c4, queen on e2. Break through on f7 and give checkmate in three moves.' },
   { lesson: 'caro-fantasy-trap', first: 'Qh4+', goal: 'White has just taken the pawn on e5. Win a rook in three moves. White will block your first check with the g-pawn.' },
   { lesson: 'italian-legal', first: 'Nxe5', goal: 'Your knight is pinned to your queen. Move it anyway and give checkmate in three moves.' },
   { lesson: 'italian-two-knights-d5', first: 'g4', last: 'Rxe5', goal: 'The pin on your knight is all that protects Black\'s pawn on e5. Break the pin and win the pawn. Three moves.' },
@@ -29,6 +32,9 @@ const COMBO_DEFS: ComboDef[] = [
   { lesson: 'e4-philidor-trap', first: 'dxe5', goal: 'Black\'s queen is shut in by her own pieces. Find the two moves that leave Black with no good answer to a mate threat.' },
   { lesson: 'e4-french-gift', first: 'Bxh7+', goal: 'Nothing guards h7 and the bishop on g4 is loose. Sacrifice, win the piece back and keep the attack going. Four moves.' },
   { lesson: 'e4-owen-trap', first: 'Qh5+', goal: 'Black has taken on g2 and is about to win your rook. Ignore it and give checkmate in four moves. Black will attack your queen with the knight.' },
+  { lesson: 'italian-fishing-pole', first: 'Qh4', goal: 'The h-file is open and White\'s knight has blocked it on h2. Find the checkmate in four moves. White will make room for the king with the rook.' },
+  { lesson: 'e4-scandi-queen-sac', first: 'Nxe5', goal: 'Your knight is pinned to your queen. Move it anyway and give checkmate in five moves.' },
+  { lesson: 'london-hfile-mate', first: 'Bxh7+', goal: 'Black\'s knight has just left f6 and your rook owns the h-file. Give checkmate in five moves.' },
   { lesson: 'london-plan', first: 'Ne5', last: 'Qh6', goal: 'Carry out the London attack: knight forward, recapture toward the king, queen across, queen in. Four moves.' },
 ]
 

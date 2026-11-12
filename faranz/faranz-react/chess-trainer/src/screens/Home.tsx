@@ -38,44 +38,55 @@ export function Home() {
         <a className="btn" href={href('progress')}>See progress</a>
       </div>
 
-      <a className="card row boardcard" href={href('board')}>
-        <div className="grow">
-          <strong>Board trainer</strong>
-          <br />
-          <span className="note">Learn to read and write chess notation and find any square instantly: five short drills.</span>
-        </div>
-        <span className="btn">Open</span>
-      </a>
+      <div className="tools">
+        <a className="card row boardcard" href={href('board')}>
+          <div className="grow">
+            <strong>Board trainer</strong>
+            <br />
+            <span className="note">Learn to read and write chess notation and find any square instantly: five short drills.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
 
-      <a className="card row boardcard" href={href('guide')}>
-        <div className="grow">
-          <strong>What to play against what</strong>
-          <br />
-          <span className="note">A lookup table: every opening and setup your opponent can choose, and the line that answers it.</span>
-        </div>
-        <span className="btn">Open</span>
-      </a>
+        <a className="card row boardcard" href={href('guide')}>
+          <div className="grow">
+            <strong>What to play against what</strong>
+            <br />
+            <span className="note">A lookup table: every opening and setup your opponent can choose, and the line that answers it.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
 
-      <a className="card row boardcard" href={href('calc')}>
-        <div className="grow">
-          <strong>Calculation trainer</strong>
-          <br />
-          <span className="note">Learn to see ahead: follow a few moves in your head without the board moving, and solve combinations you have to work out before you play.</span>
-        </div>
-        <span className="btn">Open</span>
-      </a>
+        <a className="card row boardcard" href={href('traps')}>
+          <div className="grow">
+            <strong>Traps</strong>
+            <br />
+            <span className="note">The traps in your openings, in two lists: the ones you can set, and the ones you have to see coming.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
 
-      <a className="card row boardcard" href={href('games')}>
-        <div className="grow">
-          <strong>My games</strong>
-          <br />
-          <span className="note">
-            Review your full games with the computer, replay them from any move, and practise the positions where you went wrong.
-            {s.games.length > 0 && ` ${s.games.length} saved, ${Object.keys(s.fixes).length} mistakes to fix.`}
-          </span>
-        </div>
-        <span className="btn">Open</span>
-      </a>
+        <a className="card row boardcard" href={href('calc')}>
+          <div className="grow">
+            <strong>Calculation trainer</strong>
+            <br />
+            <span className="note">Learn to see ahead: follow a few moves in your head without the board moving, and solve combinations you have to work out before you play.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
+
+        <a className="card row boardcard" href={href('games')}>
+          <div className="grow">
+            <strong>My games</strong>
+            <br />
+            <span className="note">
+              Review your full games with the computer, replay them from any move, and practise the positions where you went wrong.
+              {s.games.length > 0 && ` ${s.games.length} saved, ${Object.keys(s.fixes).length} mistakes to fix.`}
+            </span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
+      </div>
 
       {(['w', 'b'] as Side[]).map(side => (
         <section key={side}>

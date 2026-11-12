@@ -18,6 +18,8 @@ export type Chapter = 'idea' | 'main' | 'replies' | 'traps' | 'variations'
 export interface Lesson {
   id: string
   chapter: Chapter
+  /** Lessons in the traps chapter: whether you set the trap or have to avoid it. */
+  trap?: 'set' | 'avoid'
   title: string
   blurb: string
   /** guided: you play your side's moves. demo: you watch both sides. */
@@ -61,6 +63,8 @@ export const CHAPTERS: Record<Chapter, string> = {
 /** Chapter heading for an opening: the "replies" belong to whoever you are playing against. */
 export const chapterName = (ch: Chapter, o: Pick<Opening, 'side' | 'chapters'>) =>
   o.chapters?.[ch] ?? (ch === 'replies' && o.side === 'b' ? "White's other systems" : CHAPTERS[ch])
+
+export const TRAP_NAME: Record<NonNullable<Lesson['trap']>, string> = { set: 'You set it', avoid: 'Avoid it' }
 
 export const SIDE_NAME: Record<Side, string> = { w: 'White', b: 'Black' }
 export const other = (side: Side): Side => (side === 'w' ? 'b' : 'w')

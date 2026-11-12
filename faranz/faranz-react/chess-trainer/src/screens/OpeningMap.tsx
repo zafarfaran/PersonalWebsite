@@ -1,6 +1,6 @@
 import { Board } from '../components/Board'
 import { Meter, Shell } from '../components/ui'
-import { CHAPTERS, chapterName, type Chapter, type Opening } from '../data'
+import { CHAPTERS, TRAP_NAME, chapterName, type Chapter, type Opening } from '../data'
 import { lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
 import { useStore } from '../store'
@@ -39,6 +39,7 @@ export function OpeningMap({ o }: { o: Opening }) {
                       {l.title}
                       <small>{l.blurb}</small>
                     </span>
+                    {l.trap && <span className={'pill ' + l.trap}>{TRAP_NAME[l.trap]}</span>}
                     <span className="pill">{l.kind === 'demo' ? 'Watch' : 'Play'}</span>
                   </a>
                 )

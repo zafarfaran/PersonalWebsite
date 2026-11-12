@@ -13,6 +13,7 @@ import { Games, Review } from './screens/Games'
 import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
+import { Traps } from './screens/Traps'
 import { Vision } from './screens/Vision'
 import { BOARDS, PIECE_SETS, getState, updateSettings, useStore, type State } from './store'
 
@@ -27,6 +28,8 @@ function Screen({ route }: { route: string[] }) {
       return <Vision />
     case 'guide':
       return <Guide />
+    case 'traps':
+      return <Traps />
     case 'calc':
       return <Calc />
     case 'games':
@@ -99,6 +102,7 @@ export function App() {
         <nav>
           <a href={href()} className={route.length === 0 ? 'on' : ''}>Home</a>
           <a href={href('guide')} className={route[0] === 'guide' ? 'on' : ''}>Guide</a>
+          <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
           <a href={href('games')} className={['games', 'review', 'fix', 'replay'].includes(route[0]) ? 'on' : ''}>My games</a>

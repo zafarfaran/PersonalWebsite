@@ -22,6 +22,8 @@ export function lessonById(id: string): { opening: Opening; lesson: Lesson } | u
 /** Lines that are drilled in Practise, Match and Memorise. */
 export const drillLines = (o: Opening) => o.lessons.filter(l => l.drill)
 
+export const trapLessons = (o: Opening) => o.lessons.filter(l => l.chapter === 'traps')
+
 /**
  * Lines of the one repertoire the course recommends. Lessons in the
  * "variations" chapter teach other systems that start from the same moves, so

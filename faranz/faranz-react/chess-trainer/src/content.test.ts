@@ -152,9 +152,13 @@ describe('guide', () => {
   it('has a row for every drilled line of the Black openings and of the other defences to 1. e4', () => {
     const linked = new Set(GUIDE.flatMap(s => s.blocks).flatMap(b => b.rows.map(r => r.lesson)))
     const listed = OPENINGS.filter(o => o.side === 'b' || o.id === 'e4')
-    // the two demonstrations of a trap are reached from the row of the line they belong to
-    const viaParent = ['e4-french-gift', 'e4-owen-trap']
-    for (const o of listed) for (const l of drillLines(o)) expect(linked.has(l.id) || viaParent.includes(l.id), l.id).toBe(true)
+    // traps have their own page
+    for (const o of listed) for (const l of drillLines(o)) expect(linked.has(l.id) || l.chapter === 'traps', l.id).toBe(true)
+  })
+
+  it('marks every trap as one you set or one you avoid', () => {
+    for (const l of lessons) expect(!!l.trap, l.id).toBe(l.chapter === 'traps')
+    for (const o of OPENINGS) expect(new Set(o.lessons.map(l => l.trap)).size, o.id).toBe(3)
   })
 })
 
