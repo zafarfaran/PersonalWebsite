@@ -139,7 +139,7 @@ describe('engine helpers', () => {
   })
 })
 
-import { GUIDE } from './screens/Guide'
+import { GUIDE, searchGuide } from './screens/Guide'
 
 describe('guide', () => {
   it('links only to lessons and openings that exist', () => {
@@ -154,6 +154,17 @@ describe('guide', () => {
     const listed = OPENINGS.filter(o => o.side === 'b' || o.id === 'e4')
     // traps have their own page
     for (const o of listed) for (const l of drillLines(o)) expect(linked.has(l.id) || l.chapter === 'traps', l.id).toBe(true)
+  })
+
+  it('finds lines by name or by moves, whatever the spelling, best match first', () => {
+    const lessonsFor = (q: string) => searchGuide(q).map(hit => hit.row.lesson)
+    expect(searchGuide('  ')).toEqual([])
+    expect(lessonsFor('samisch').sort()).toEqual(['kid-samisch', 'kid-samisch-nge2'])
+    expect(lessonsFor('SÄMISCH nge2')).toEqual(['kid-samisch-nge2'])
+    expect(lessonsFor('e4 d5')[0]).toBe('e4-scandi-qa5')
+    expect(lessonsFor('1... Nf6 2... c5')[0]).toBe('london-benoni')
+    expect(lessonsFor('italian').length).toBeGreaterThanOrEqual(6)
+    expect(lessonsFor('zzz')).toEqual([])
   })
 
   it('marks every trap as one you set or one you avoid', () => {

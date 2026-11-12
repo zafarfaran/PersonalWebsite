@@ -205,6 +205,14 @@ td .meter { width: 110px; }
 
 /* guide and home sections */
 .sidehead { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px; }
+.search { display: flex; gap: 8px; margin-bottom: 8px; }
+.search input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 15px; }
+.search input:focus { border-color: var(--accent); outline: none; }
+.search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+.searchhelp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 26px; margin-bottom: 18px; }
+.searchhelp .pill { background: none; }
+.searchhelp .pill:hover { border-color: var(--accent); color: var(--text); }
 .guide { margin-bottom: 30px; }
 .guide > h2 { font-size: 18px; margin-bottom: 6px; }
 .guide > p { max-width: 78ch; margin-bottom: 14px; }
@@ -216,6 +224,7 @@ td .meter { width: 110px; }
 .trapgroup .lesson:last-child { margin-bottom: 0; }
 .guide .seen { flex: 0 0 34%; }
 .guide .seen small { display: block; color: var(--muted); }
+.guide .seen .from { color: var(--accent); }
 .guide .reply .btn, .guide .reply .pill { flex: none; }
 @media (max-width: 700px) {
   .guide .reply { flex-wrap: wrap; }

@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { Shell } from '../components/ui'
+import { lessonById, openingById } from '../data'
 import { href } from '../router'
 
 interface Row {
@@ -183,11 +185,108 @@ export const GUIDE: { heading: string; intro: string; blocks: Block[] }[] = [
   },
 ]
 
+/** Lower case, no accents, and nothing but letters and digits: "Sämisch" and "1… d5" match "samisch" and "d5". */
+const plain = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+export interface Hit {
+  row: Row
+  block: Block
+}
+
+/**
+ * Rows that contain every word of the query, best match first. A word counts
+ * for more in the moves or the name than in the advice, and most of all when
+ * the row starts with it.
+ */
+export function searchGuide(query: string): Hit[] {
+  const words = plain(query).split(' ').filter(Boolean)
+  if (!words.length) return []
+  const hits: (Hit & { score: number })[] = []
+  for (const block of GUIDE.flatMap(s => s.blocks)) {
+    for (const row of block.rows) {
+      const lesson = row.lesson ? lessonById(row.lesson)?.lesson : undefined
+      const moves = plain(row.moves)
+      const fields: [string, number][] = [
+        [moves, 3],
+        [plain(row.name), 3],
+        [plain(lesson?.title ?? ''), 2],
+        [plain(`${row.play} ${lesson?.blurb ?? ''}`), 1],
+        [plain(block.title), 1],
+      ]
+      let score = 0
+      for (const w of words) {
+        const best = Math.max(0, ...fields.filter(([text]) => text.includes(w)).map(([, weight]) => weight))
+        if (!best) { score = 0; break }
+        score += best + (moves.startsWith(w) || moves.startsWith('1 ' + w) ? 2 : 0)
+      }
+      if (score) hits.push({ row, block, score })
+    }
+  }
+  return hits.sort((a, b) => b.score - a.score)
+}
+
+const EXAMPLES = ['Sicilian', 'e4 d5', 'London', 'Qb6', 'Sämisch', 'gambit']
+
 /** A lookup table: which line to play against each thing the opponent can do. */
 export function Guide() {
+  const [query, setQuery] = useState('')
+  const box = useRef<HTMLInputElement>(null)
+  const hits = searchGuide(query)
+  const found = hits.length
+  const searching = query.trim() !== ''
+
+  // "/" jumps to the search box, Escape clears it
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '/' && document.activeElement !== box.current) {
+        e.preventDefault()
+        box.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <Shell back={href()} backLabel="Home" title="What to play against what">
-      {GUIDE.map(section => (
+      <div className="search">
+        <input
+          ref={box}
+          type="search"
+          value={query}
+          placeholder="Search by opening name or by moves, e.g. Sicilian, e4 d5, Qb6"
+          aria-label="Search the guide"
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Escape' && setQuery('')}
+        />
+        {searching && <button className="btn" onClick={() => { setQuery(''); box.current?.focus() }}>Clear</button>}
+      </div>
+      <div className="searchhelp">
+        {searching ? (
+          <span className="note">{found === 0 ? 'Nothing found.' : found === 1 ? '1 line found.' : `${found} lines found.`}</span>
+        ) : (
+          <>
+            <span className="note">Try:</span>
+            {EXAMPLES.map(x => <button key={x} className="pill" onClick={() => setQuery(x)}>{x}</button>)}
+          </>
+        )}
+      </div>
+      {searching && found === 0 && (
+        <div className="card">
+          <p>No line matches “{query.trim()}”. Use fewer words, the name of the opening, or just the moves you saw on the board, such as “d5” or “Bg4”.</p>
+          <div className="actions"><button className="btn primary" onClick={() => setQuery('')}>Show everything</button></div>
+        </div>
+      )}
+      {searching && found > 0 && (
+        <section className="guide">
+          <div className="card">
+            {hits.map(({ row, block }) => (
+              <GuideRow key={block.title + row.moves + row.name} row={row} from={(block.opening && openingById(block.opening)?.name) || block.title} />
+            ))}
+          </div>
+        </section>
+      )}
+      {!searching && GUIDE.map(section => (
         <section className="guide" key={section.heading}>
           <h2>{section.heading}</h2>
           <p className="muted">{section.intro}</p>
@@ -198,20 +297,26 @@ export function Guide() {
                 {block.opening && <a className="btn" href={href('o', block.opening)}>All lessons</a>}
               </div>
               <p className="note">{block.lead}</p>
-              {block.rows.map(row => (
-                <div className="reply" key={row.moves + row.name}>
-                  <div className="seen">
-                    <b>{row.moves}</b>
-                    <small>{row.name}</small>
-                  </div>
-                  <div className="t">{row.play}</div>
-                  {row.lesson ? <a className="btn" href={href('learn', row.lesson)}>Lesson</a> : <span className="pill">No lesson yet</span>}
-                </div>
-              ))}
+              {block.rows.map(row => <GuideRow key={row.moves + row.name} row={row} />)}
             </div>
           ))}
         </section>
       ))}
     </Shell>
+  )
+}
+
+/** One line of the table. In search results `from` says which opening it belongs to. */
+function GuideRow({ row, from }: { row: Row; from?: string }) {
+  return (
+    <div className="reply">
+      <div className="seen">
+        <b>{row.moves}</b>
+        <small>{row.name}</small>
+        {from && <small className="from">{from}</small>}
+      </div>
+      <div className="t">{row.play}</div>
+      {row.lesson ? <a className="btn" href={href('learn', row.lesson)}>Lesson</a> : <span className="pill">No lesson yet</span>}
+    </div>
   )
 }
