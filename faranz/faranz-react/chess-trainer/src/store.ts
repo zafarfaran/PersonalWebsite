@@ -20,6 +20,8 @@ export interface MoveNote {
   loss?: number
   /** Score after the move, from your side, in hundredths of a pawn. */
   cp?: number
+  /** The opponent's strongest answer to a mistake or blunder. */
+  reply?: string
 }
 
 /** A full game you played, kept so it can be reviewed and replayed. */
@@ -32,6 +34,13 @@ export interface SavedGame {
   result: string
   /** Notes on your moves, keyed by ply. */
   notes: Record<number, MoveNote>
+  /** Loaded from a PGN file rather than played here. */
+  imported?: true
+  /** Player names of a loaded game. */
+  white?: string
+  black?: string
+  /** The game on the site it was played on. */
+  link?: string
 }
 
 /** A position in which you went wrong, kept for the mistake drill. */
@@ -75,6 +84,8 @@ export interface State {
     level: number
     /** Random trainer: openings switched off. */
     randomOff: string[]
+    /** Your names on other chess sites, to tell which side of a loaded game is yours. */
+    players: string[]
   }
 }
 
@@ -89,7 +100,7 @@ const fresh = (): State => ({
   games: [],
   fixes: {},
   days: [],
-  settings: { pieces: 'staunty', board: 'night', level: 2, randomOff: [] },
+  settings: { pieces: 'staunty', board: 'night', level: 2, randomOff: [], players: [] },
 })
 
 function load(): State {
@@ -176,11 +187,12 @@ export function recordCalc(exercise: string, score: number, now = Date.now()) {
   set({ ...state, calc: { ...state.calc, [exercise]: Math.max(state.calc[exercise] ?? 0, score) }, days: withToday(state.days, now) })
 }
 
-const MAX_GAMES = 30
+const MAX_GAMES = 100
 
 /** Add a game, or replace the saved copy of the same game. Only the most recent games are kept. */
 export function saveGame(game: SavedGame) {
-  set({ ...state, games: [game, ...state.games.filter(g => g.id !== game.id)].slice(0, MAX_GAMES) })
+  const games = [game, ...state.games.filter(g => g.id !== game.id)].sort((a, b) => b.at - a.at)
+  set({ ...state, games: games.slice(0, MAX_GAMES) })
 }
 
 export function deleteGame(id: string) {

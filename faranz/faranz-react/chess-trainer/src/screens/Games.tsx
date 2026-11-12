@@ -7,6 +7,7 @@ import { Engine } from '../engine'
 import { href } from '../router'
 import { isDue } from '../srs'
 import { addFix, deleteGame, saveGame, useStore, type MoveNote, type SavedGame, type Verdict } from '../store'
+import { Import } from './Import'
 
 const ANALYSE_MS = 300
 const cap = (cp: number) => Math.max(-1000, Math.min(1000, cp))
@@ -32,6 +33,8 @@ const standing = (cp: number) =>
   : cp > -200 ? 'slightly worse for you' : cp > -500 ? 'clearly worse for you' : 'losing for you'
 
 const slipsOf = (g: SavedGame) => Object.values(g.notes).filter(n => n.verdict === 'mistake' || n.verdict === 'blunder').length
+const analysed = (g: SavedGame) => Object.values(g.notes).some(n => n.cp !== undefined)
+const titleOf = (g: SavedGame) => (g.imported ? `${g.white} vs ${g.black}` : openingById(g.opening)?.name ?? 'Game')
 const when = (t: number) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ', ' + new Date(t).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
 /** Every full game you have played, newest first. */
@@ -55,10 +58,12 @@ export function Games() {
         {total > 0 && <a className="btn primary" href={href('fix')}>Practise my mistakes</a>}
       </div>
 
+      <Import />
+
       {s.games.length === 0 ? (
         <div className="card">
           <div className="eyebrow">No games yet</div>
-          <p>Play a full game with any opening and it is saved here automatically, ready to review with the computer.</p>
+          <p>Load a game above, or play a full game with any opening: it is saved here automatically, ready to review with the computer.</p>
           <div className="actions"><a className="btn primary" href={href()}>Choose an opening</a></div>
         </div>
       ) : (
@@ -69,8 +74,11 @@ export function Games() {
             return (
               <div className="reply" key={g.id}>
                 <div className="t">
-                  <b>{openingById(g.opening)?.name ?? 'Game'} · {Math.ceil(g.moves.length / 2)} moves</b>
-                  <small>{when(g.at)} · {g.result} · {slips} {slips === 1 ? 'mistake' : 'mistakes'} found so far</small>
+                  <b>{titleOf(g)} · {Math.ceil(g.moves.length / 2)} moves</b>
+                  <small>
+                    {when(g.at)} · {g.imported && `you were ${SIDE_NAME[g.side]} · `}{g.result} ·{' '}
+                    {g.imported && !analysed(g) ? 'not analysed yet' : `${slips} ${slips === 1 ? 'mistake' : 'mistakes'} found so far`}
+                  </small>
                 </div>
                 <a className="btn primary" href={href('review', g.id)}>Review</a>
                 <button className="btn" onClick={() => { if (window.confirm('Delete this game and the practice positions that came from it?')) deleteGame(g.id) }}>Delete</button>
@@ -87,8 +95,9 @@ export function Games() {
 export function Review({ game }: { game: SavedGame }) {
   const opening = openingById(game.opening)
   const mine = game.side === 'w' ? 0 : 1 // parity of your plies
-  const them = SIDE_NAME[other(game.side)]
-  const [ply, setPly] = useState(game.moves.length)
+  const them = (game.imported && (game.side === 'w' ? game.black : game.white)) || SIDE_NAME[other(game.side)]
+  // a loaded game opens at the start, a game played here on its final position
+  const [ply, setPly] = useState(game.imported && !analysed(game) ? 0 : game.moves.length)
   const [progress, setProgress] = useState<number | null>(null)
   const [error, setError] = useState('')
   const engine = useRef<Engine | null>(null)
@@ -142,8 +151,10 @@ export function Review({ game }: { game: SavedGame }) {
         const playedBest = best === game.moves[i]
         const course = notes[i]?.verdict === 'course'
         const verdict = course ? 'course' : verdictFor(before.cp, afterCp, playedBest)
-        notes[i] = { verdict, best: playedBest ? undefined : best ?? undefined, loss: Math.max(0, cap(before.cp) - cap(afterCp)), cp: afterCp }
-        if (best && (verdict === 'mistake' || verdict === 'blunder')) {
+        const slip = verdict === 'mistake' || verdict === 'blunder'
+        const reply = slip && after ? sanOf(replay(game.moves, i + 1).fen(), after.from, after.to) : null
+        notes[i] = { verdict, best: playedBest ? undefined : best ?? undefined, loss: Math.max(0, cap(before.cp) - cap(afterCp)), cp: afterCp, reply: reply ?? undefined }
+        if (best && slip) {
           addFix(fenKey(fen), { fen, played: game.moves[i], best, bestCp: cap(before.cp), game: game.id, side: game.side })
         }
       }
@@ -154,6 +165,13 @@ export function Review({ game }: { game: SavedGame }) {
       if (!cancelled.current) setProgress(null)
     }
   }
+
+  // a game loaded from a file has not been looked at yet: start straight away
+  useEffect(() => {
+    if (!game.imported || analysed(game)) return
+    const t = setTimeout(analyse, 0)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const position = useMemo(() => replay(game.moves, ply), [game.moves, ply])
   const fen = position.fen()
@@ -174,8 +192,8 @@ export function Review({ game }: { game: SavedGame }) {
     <Shell
       back={href('games')}
       backLabel="My games"
-      title={opening?.name ?? 'Game'}
-      mode="Review"
+      title={titleOf(game)}
+      mode={game.imported && opening ? `Review · ${opening.name}` : 'Review'}
       right={<span className="count">{when(game.at)} · {game.result}</span>}
     >
       <div className="trainer">
@@ -205,16 +223,15 @@ export function Review({ game }: { game: SavedGame }) {
                       : note.best
                       ? `Fine. The engine slightly prefers ${note.best}.`
                       : 'The engine would have played the same move.'}
+                    {note.reply && info?.tone === 'bad' && ` ${them}'s strongest answer was ${note.reply}.`}
                     {note.cp !== undefined && ` After it the position is ${standing(note.cp)}.`}
                   </p>
                 )}
-                {opening && (
-                  <div className="actions">
-                    <a className={'btn' + (info?.tone === 'bad' ? ' primary' : '')} href={href('replay', game.id, String(shown))}>
-                      Play on from before this move
-                    </a>
-                  </div>
-                )}
+                <div className="actions">
+                  <a className={'btn' + (info?.tone === 'bad' ? ' primary' : '')} href={href('replay', game.id, String(shown))}>
+                    {info?.tone === 'bad' ? 'Play it again from before this move' : 'Play on from before this move'}
+                  </a>
+                </div>
               </>
             )}
             <div className="actions">
@@ -262,7 +279,10 @@ export function Review({ game }: { game: SavedGame }) {
                 )
               })}
             </div>
-            <p className="note">Red: mistake or blunder. Amber: inaccuracy.</p>
+            <p className="note">
+              Red: mistake or blunder. Amber: inaccuracy.
+              {game.link && <> <a href={game.link} target="_blank" rel="noreferrer">Open the game on {new URL(game.link).hostname.replace(/^www\./, '')} ↗</a></>}
+            </p>
           </div>
         </div>
       </div>

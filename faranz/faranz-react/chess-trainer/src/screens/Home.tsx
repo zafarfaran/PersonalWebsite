@@ -92,7 +92,7 @@ export function Home() {
             <strong>My games</strong>
             <br />
             <span className="note">
-              Review your full games with the computer, replay them from any move, and practise the positions where you went wrong.
+              Load your games from Chess.com or Lichess, or play one here. The computer marks what went wrong and what to play instead; replay from any move and practise the positions you got wrong.
               {s.games.length > 0 && ` ${s.games.length} saved, ${Object.keys(s.fixes).length} mistakes to fix.`}
             </span>
           </div>

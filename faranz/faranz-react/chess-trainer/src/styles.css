@@ -139,6 +139,11 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .reply:first-of-type { border-top: 0; }
 .reply .t { flex: 1; }
 .reply .t small { display: block; color: var(--muted); }
+.import { margin-bottom: 20px; }
+.import.over { border-color: var(--accent); }
+.import textarea { display: block; width: 100%; min-height: 96px; margin: 10px 0; padding: 10px; resize: vertical; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
+button.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.import .ask { margin-top: 12px; padding: 12px; border-radius: 8px; background: var(--raised); }
 .pickrow { cursor: pointer; }
 .pickrow input { accent-color: var(--accent); width: 16px; height: 16px; }
 .pickrow + .setting { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }

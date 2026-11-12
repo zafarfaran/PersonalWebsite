@@ -44,11 +44,13 @@ const standing = (cp: number) =>
  * A full game with your side of the opening. From move one, the opponent plays
  * from a book of common lines and then a human-like engine takes over until the game
  * ends. With `lesson`, the game starts from the end of that line instead, and
- * with `start` from the given moves (a position from one of your own games).
+ * with `start` from the given moves (a position from one of your own games,
+ * `from` being the id of that game).
  * Every move of yours outside the course lines is rated by the engine.
  */
-export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Lesson; start?: string[] }) {
+export function Game({ opening, lesson, start, from }: { opening: Opening; lesson?: Lesson; start?: string[]; from?: string }) {
   const them = SIDE_NAME[other(opening.side)]
+  const back = from ? { to: href('review', from), label: 'Review' } : { to: href('o', opening.id), label: opening.name }
   const base = useMemo(() => start ?? (lesson ? sans(lesson) : []), [lesson, start])
   const id = useRef(newId())
   const notes = useRef<Record<number, MoveNote>>({})
@@ -257,8 +259,8 @@ export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Le
 
   return (
     <Shell
-      back={href('o', opening.id)}
-      backLabel={opening.name}
+      back={back.to}
+      backLabel={back.label}
       title={lesson ? `${opening.name} · ${lesson.title}` : opening.name}
       mode={start ? 'Replay from your game' : lesson ? 'Play on' : 'Full game'}
       right={<span className="count">{status}</span>}
@@ -285,7 +287,7 @@ export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Le
                 <div className="actions">
                   {saved && <a className="btn primary" href={href('review', id.current)}>Review this game</a>}
                   <button className={'btn' + (saved ? '' : ' primary')} onClick={newGame}>{start ? 'Try again from here' : 'New game'}</button>
-                  <a className="btn" href={href('o', opening.id)}>Back to {opening.name}</a>
+                  <a className="btn" href={back.to}>Back to {from ? 'the review' : opening.name}</a>
                 </div>
               </>
             ) : feedback ? (
@@ -306,7 +308,7 @@ export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Le
                 </p>
               </>
             )}
-            {!over && (closest?.plan || !closest) && (
+            {!over && (closest?.plan || (!closest && opening.setupNote)) && (
               <p className="key">
                 {closest?.plan ? (
                   <>

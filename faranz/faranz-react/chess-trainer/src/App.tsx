@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { lessonById, openingById } from './data'
+import { freePlay, lessonById, openingById } from './data'
 import { href, useRoute } from './router'
 import { Home, NotFound } from './screens/Home'
 import { Learn } from './screens/Learn'
@@ -45,10 +45,10 @@ function Screen({ route }: { route: string[] }) {
     case 'replay': {
       // a position from one of your own games: everything before move `b`
       const saved = getState().games.find(g => g.id === a)
-      const o = saved && openingById(saved.opening)
+      const o = saved && (openingById(saved.opening) ?? freePlay(saved.side))
       const ply = Number(b)
       return saved && o && ply >= 0 && ply < saved.moves.length ? (
-        <Game key={route.join('/')} opening={o} start={saved.moves.slice(0, ply)} />
+        <Game key={route.join('/')} opening={o} start={saved.moves.slice(0, ply)} from={saved.id} />
       ) : (
         <NotFound what="saved game" />
       )

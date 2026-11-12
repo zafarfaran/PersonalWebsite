@@ -332,6 +332,47 @@ describe('game review', () => {
   })
 })
 
+import { courseOpening, outcome, parsePgn, sideOf, toSaved } from './pgn'
+
+describe('loading games from PGN', () => {
+  const header = (white: string, black: string, result: string, extra = '') =>
+    `[Event "Live Chess"]\n[Site "Chess.com"]\n[Date "2026.11.12"]\n[White "${white}"]\n[Black "${black}"]\n[Result "${result}"]\n${extra}\n`
+  const first = header('anna', 'Bob', '0-1', '[UTCDate "2026.11.12"]\n[UTCTime "20:24:35"]\n[Termination "Bob won by resignation"]\n[Link "https://www.chess.com/game/live/1"]\n')
+    + '1. e4 {[%clk 0:09:58]} 1... c6 {[%clk 0:09:57]} 2. d4 d5 (2... g6 3. Nc3) 3. e5 Bf5 $1 4. Nf3 e6 0-1'
+  const second = header('Bob', 'carl', '1/2-1/2') + '1. d4 d5 2. Bf4 Nf6 3. e3 e6 1/2-1/2'
+
+  it('reads moves and players, ignoring clocks, comments and side lines', () => {
+    const { games, skipped } = parsePgn(first + '\r\n\r\n' + second + '\n\n' + header('x', 'y', '*') + '1. e4 e5 2. Ke3 *')
+    expect(skipped).toBe(1)
+    expect(games.map(g => g.moves.join(' '))).toEqual(['e4 c6 d4 d5 e5 Bf5 Nf3 e6', 'd4 d5 Bf4 Nf6 e3 e6'])
+    expect(games[0]).toMatchObject({ white: 'anna', black: 'Bob', result: '0-1', at: Date.UTC(2026, 10, 12, 20, 24, 35), link: 'https://www.chess.com/game/live/1' })
+    expect(parsePgn('1. e4 e5 2. Nf3').games[0]).toMatchObject({ white: '', black: '', result: '*', moves: ['e4', 'e5', 'Nf3'] })
+    expect(() => parsePgn('hello there')).toThrow()
+    expect(() => parsePgn('  ')).toThrow()
+    expect(() => parsePgn('[FEN "8/8/8/8/8/4k3/4p3/4K3 b - - 0 1"]\n[SetUp "1"]\n\n1... Kd3')).toThrow(/set-up/)
+  })
+
+  it('works out which side is yours, the opening and the result', () => {
+    const [a, b] = parsePgn(first + '\n\n' + second).games
+    expect([sideOf(a, []), sideOf(a, ['bob']), sideOf(b, ['BOB']), sideOf(a, ['anna', 'bob'])]).toEqual([undefined, 'b', 'w', undefined])
+    expect(outcome(a, 'b')).toBe('You won by resignation')
+    expect(outcome(a, 'w')).toBe('You lost by resignation')
+    expect(outcome(b, 'w')).toBe('Draw')
+    expect(courseOpening(a.moves, 'b')?.id).toBe('caro')
+    expect(courseOpening(b.moves, 'w')?.id).toBe('london')
+    expect(courseOpening(['e4', 'e5', 'f3', 'Nc6'], 'w')).toBeUndefined()
+    expect(courseOpening(['e4', 'e5', 'f3', 'Nc6'], 'b')).toBeUndefined()
+
+    const saved = toSaved(a, 'b')
+    expect(saved).toMatchObject({ opening: 'caro', side: 'b', imported: true, white: 'anna', black: 'Bob', result: 'You won by resignation' })
+    expect(saved.notes[1]).toEqual({ verdict: 'course' }) // 1… c6
+    expect(saved.notes[0]).toBeUndefined() // not your move
+    expect(toSaved(a, 'b').id).toBe(saved.id)
+    expect(toSaved(a, 'w').id).not.toBe(saved.id)
+    expect(replay(saved.moves).history()).toEqual(saved.moves)
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])
