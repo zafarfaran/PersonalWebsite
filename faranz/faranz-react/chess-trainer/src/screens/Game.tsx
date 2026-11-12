@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { accuracyOf, percent } from '../accuracy'
 import { bookFor, bookReply } from '../book'
 import { Board, type Arrow } from '../components/Board'
 import { MoveList, Shell } from '../components/ui'
-import { clean, fenKey, lastMoveOf, legalDests, replay, sanOf, type Square } from '../chess'
+import { clean, fenKey, lastMoveOf, legalDests, replay, sanOf, squaresOf, type Square } from '../chess'
 import { SIDE_NAME, drillLines, other, sans, type Lesson, type Opening } from '../data'
 import { Engine, LEVELS, chooseMove, type Line } from '../engine'
 import { href } from '../router'
-import { addFix, saveGame, updateSettings, useStore, type MoveNote } from '../store'
+import { addFix, saveGame, updateSettings, useStore, type MoveNote, type SavedGame } from '../store'
 
 interface Feedback {
   tone: 'good' | 'accent' | 'bad'
@@ -45,11 +46,14 @@ const standing = (cp: number) =>
  * from a book of common lines and then a human-like engine takes over until the game
  * ends. With `lesson`, the game starts from the end of that line instead, and
  * with `start` from the given moves (a position from one of your own games,
- * `from` being the id of that game).
+ * `from` being the id of that game). With `script`, one of your games is
+ * played again from move one: the opponent repeats the moves of that game for
+ * as long as you do, your mistakes in it have to be improved on, and once the
+ * game has left the original the computer takes over the opponent to the end.
  * Every move of yours outside the course lines is rated by the engine.
  */
-export function Game({ opening, lesson, start, from }: { opening: Opening; lesson?: Lesson; start?: string[]; from?: string }) {
-  const them = SIDE_NAME[other(opening.side)]
+export function Game({ opening, lesson, start, from, script }: { opening: Opening; lesson?: Lesson; start?: string[]; from?: string; script?: SavedGame }) {
+  const them = (script?.imported && (opening.side === 'w' ? script.black : script.white)) || SIDE_NAME[other(opening.side)]
   const back = from ? { to: href('review', from), label: 'Review' } : { to: href('o', opening.id), label: opening.name }
   const base = useMemo(() => start ?? (lesson ? sans(lesson) : []), [lesson, start])
   const id = useRef(newId())
@@ -75,9 +79,15 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
   useEffect(() => {
     const e = new Engine()
     engine.current = e
-    e.ready.catch(err => setError(err.message))
+    e.ready.catch(err => engine.current === e && setError(err.message))
     return () => e.quit()
   }, [])
+
+  /** The next move of the original game, while this one has repeated it move for move. */
+  const scripted = () => {
+    const h = game.current.history()
+    return script && h.every((san, i) => san === script.moves[i]) ? script.moves[h.length] : undefined
+  }
 
   const g = game.current
   const fen = g.fen()
@@ -105,7 +115,8 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
     const started = Date.now()
     setThinking(true)
     ;(async () => {
-      const bookSan = bookReply(opening, fen)
+      // in a game played again, the opponent repeats what they played for as long as you do
+      const bookSan = scripted() ?? bookReply(opening, fen)
       let reply: string | { from: string; to: string; promotion?: string } | null = bookSan
       if (mine || !bookSan) {
         const cfg = LEVELS[level - 1]
@@ -169,15 +180,36 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
   const play = (from: Square, to: Square) => {
     const taught = book.repertoire.get(fenKey(fen)) ?? []
     const ply = g.history().length
+    const original = scripted()
+    const was = original ? script!.notes[ply] : undefined
     let san: string
     try {
       san = g.move({ from, to, promotion: 'q' }).san
     } catch {
       return // not a legal move
     }
+    if (san === original && was && (was.verdict === 'mistake' || was.verdict === 'blunder')) {
+      // the point of playing the game again is to do better here
+      g.undo()
+      setFeedback({
+        tone: 'bad',
+        title: `${san} is what you played in the game`,
+        text: `It gave away about ${((was.loss ?? 0) / 100).toFixed(1)} pawns' worth${was.reply ? `: ${them}'s strongest answer is ${was.reply}` : ''}. Find a better move, or press “Show the better move”.`,
+      })
+      redraw()
+      return
+    }
     setHint(false)
     const course = taught.find(t => clean(t.step.san) === clean(san))
-    if (course) {
+    if (san === original && was && was.verdict !== 'course') {
+      // the computer has already rated this move in the review
+      notes.current[ply] = was
+      setFeedback({
+        tone: was.verdict === 'inaccuracy' ? 'accent' : 'good',
+        title: `${was.verdict === 'inaccuracy' ? 'Inaccuracy' : was.verdict === 'best' ? 'Best move' : 'Good move'} · ${san}`,
+        text: 'The same move as in the game.' + (was.verdict === 'inaccuracy' && was.best ? ` ${was.best} was a little stronger.` : ''),
+      })
+    } else if (course) {
       // a move straight from the lessons needs no engine check
       notes.current[ply] = { verdict: 'course' }
       setFeedback({ tone: 'good', title: `Course move · ${san}`, text: course.step.note ?? '' })
@@ -190,10 +222,24 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
         fenBefore: fen,
         fenAfter: g.fen(),
         pre: pre.current,
-        lead: taught.length ? `The course move here is ${taught[0].step.san} (${taught[0].lesson.title}). ` : '',
+        lead:
+          (original && san !== original ? `In the game you played ${original} here. ` : '') +
+          (taught.length ? `The course move here is ${taught[0].step.san} (${taught[0].lesson.title}). ` : ''),
       }
       setFeedback({ tone: 'accent', title: `Checking ${san}…`, text: pending.current.lead })
     }
+    redraw()
+  }
+
+  /** Playing a game again: make the same mistake as in the game on purpose, to get to the later ones. */
+  const keepOriginal = () => {
+    const ply = g.history().length
+    const san = scripted()
+    if (!san) return
+    g.move(san)
+    notes.current[ply] = script!.notes[ply]
+    setHint(false)
+    setFeedback({ tone: 'accent', title: `${san}, as in the game`, text: `The mistake stays in, so ${them} goes on with the moves of the game.` })
     redraw()
   }
 
@@ -240,7 +286,13 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
 
   const last = lastMoveOf(g)
   const bestHere = best?.fen === fen ? best.line : null
-  const arrows: Arrow[] = hint && bestHere ? [{ from: bestHere.from, to: bestHere.to, color: 'accent' }] : []
+  // playing a game again: what you did in this position the first time
+  const original = theirTurn ? undefined : scripted()
+  const was = original ? script!.notes[history.length] : undefined
+  const wasBad = was?.verdict === 'mistake' || was?.verdict === 'blunder'
+  const better = wasBad && was?.best ? squaresOf(fen, was.best) : null
+  const shown = better ?? bestHere
+  const arrows: Arrow[] = hint && shown ? [{ from: shown.from, to: shown.to, color: 'accent' }] : []
   const result = resigned ? 'You resigned.'
     : g.isCheckmate() ? (theirTurn ? 'Checkmate. You won.' : `Checkmate. ${them} won.`)
     : g.isStalemate() ? 'Stalemate. The game is a draw.'
@@ -248,7 +300,8 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
     : ''
   const status = result || (thinking ? `${them} is thinking…` : g.inCheck() ? 'You are in check.' : 'Your move')
   const won = g.isCheckmate() && theirTurn
-  const saved = history.length >= MIN_SAVED && history.length > base.length + 1
+  // a game played again is only worth keeping once it differs from the original
+  const saved = history.length >= MIN_SAVED && history.length > base.length + 1 && (!script || history.some((san, i) => san !== script.moves[i]))
 
   // keep the saved copy of this game up to date, so it can be reviewed later even if you leave half way
   useEffect(() => {
@@ -261,8 +314,8 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
     <Shell
       back={back.to}
       backLabel={back.label}
-      title={lesson ? `${opening.name} · ${lesson.title}` : opening.name}
-      mode={start ? 'Replay from your game' : lesson ? 'Play on' : 'Full game'}
+      title={script?.imported ? `${script.white} vs ${script.black}` : lesson ? `${opening.name} · ${lesson.title}` : opening.name}
+      mode={script ? 'Play it again' : start ? 'Replay from your game' : lesson ? 'Play on' : 'Full game'}
       right={<span className="count">{status}</span>}
     >
       <div className="trainer">
@@ -283,10 +336,11 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
                 <div className={'move ' + (won ? 'good' : '')}>{result}</div>
                 <p>
                   Your slips this game: {tally}.
+                  {accuracyOf(notes.current) !== null && ` Accuracy: ${percent(accuracyOf(notes.current)!)}.`}
                 </p>
                 <div className="actions">
                   {saved && <a className="btn primary" href={href('review', id.current)}>Review this game</a>}
-                  <button className={'btn' + (saved ? '' : ' primary')} onClick={newGame}>{start ? 'Try again from here' : 'New game'}</button>
+                  <button className={'btn' + (saved ? '' : ' primary')} onClick={newGame}>{script ? 'Play it again from move one' : start ? 'Try again from here' : 'New game'}</button>
                   <a className="btn" href={back.to}>Back to {from ? 'the review' : opening.name}</a>
                 </div>
               </>
@@ -300,7 +354,9 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
               <>
                 <div className="eyebrow">Coach</div>
                 <p>
-                  {start
+                  {script
+                    ? `This is your game again, from move one. ${them} plays the same moves as in the game for as long as you do. Where you went wrong you have to find something better; from then on the computer plays ${them}'s side, and you can play it out to the end to see how the game would have gone.`
+                    : start
                     ? 'This is a position from one of your games. Play it again from here and see if it goes better. I will rate each move you make.'
                     : lesson
                     ? 'The opening is over. From here there is no single right move, so play the position. I will rate each move you make.'
@@ -321,7 +377,30 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
                 )}
               </p>
             )}
-            {hint && bestHere && <p className="accent">Hint: the engine would play {sanOf(fen, bestHere.from, bestHere.to)}.</p>}
+            {script && !over && !theirTurn && (
+              <p className="key">
+                {original && wasBad ? (
+                  <>
+                    <b>This is where it went wrong.</b> In the game you played {original}, a {was!.verdict}. Find a better move: the game then
+                    goes a different way from here. To get to your later mistakes instead,{' '}
+                    <button className="link" onClick={keepOriginal}>play {original} anyway</button>.
+                  </>
+                ) : original ? (
+                  <>
+                    <b>In the game</b> you played {original} here{was?.verdict === 'inaccuracy' ? `, a small inaccuracy${was.best ? ` (${was.best} was a little stronger)` : ''}` : was ? ', which was fine' : ''}. Play it again, or try something else.
+                  </>
+                ) : history.length >= script.moves.length && history.every((san, i) => san === script.moves[i]) ? (
+                  <>
+                    <b>The game ended here.</b> Play on to see how it could have gone.
+                  </>
+                ) : (
+                  <>
+                    <b>You have left the game.</b> {them}'s moves now come from the computer. Play it out to the end.
+                  </>
+                )}
+              </p>
+            )}
+            {hint && shown && <p className="accent">{better ? `The better move was ${was!.best}.` : `Hint: the engine would play ${sanOf(fen, shown.from, shown.to)}.`}</p>}
             {error && <p className="bad">{error} Reload the page to try again.</p>}
           </div>
 
@@ -353,9 +432,9 @@ export function Game({ opening, lesson, start, from }: { opening: Opening; lesso
           </div>
 
           <div className="actions">
-            <button className="btn" onClick={() => setHint(true)} disabled={over || theirTurn || !bestHere || hint}>Hint</button>
+            <button className="btn" onClick={() => setHint(true)} disabled={over || theirTurn || !shown || hint}>{better ? 'Show the better move' : 'Hint'}</button>
             <button className="btn" onClick={takeBack} disabled={!canTakeBack}>Take back</button>
-            <button className="btn" onClick={newGame}>{start ? 'Start again' : 'New game'}</button>
+            <button className="btn" onClick={newGame}>{start || script ? 'Start again' : 'New game'}</button>
             {!over && <button className="btn" onClick={() => setResigned(true)}>Resign</button>}
           </div>
         </div>

@@ -373,6 +373,29 @@ describe('loading games from PGN', () => {
   })
 })
 
+import { accuracyOf, gameAccuracy, moveAccuracy, winChance } from './accuracy'
+
+describe('accuracy', () => {
+  it('rates a move by the winning chances it gives away', () => {
+    expect(winChance(0)).toBe(50)
+    expect(winChance(300)).toBeGreaterThan(70)
+    expect(moveAccuracy(50, 50)).toBe(100)
+    expect(moveAccuracy(50, 120)).toBe(100) // the position got better than expected
+    expect(moveAccuracy(50, -50)).toBeGreaterThan(moveAccuracy(50, -300))
+    expect(moveAccuracy(0, -1000)).toBeLessThan(15)
+    expect(moveAccuracy(1000, 800)).toBeGreaterThan(85) // still winning easily
+  })
+
+  it('sums a game up, weighing bad moves more than an average would', () => {
+    expect(gameAccuracy([])).toBeNull()
+    expect(gameAccuracy([100, 100])).toBe(100)
+    expect(gameAccuracy([100, 100, 100, 10])!).toBeLessThan(77.5)
+    expect(accuracyOf({ 0: { verdict: 'course' }, 2: { verdict: 'best', cp: 30, loss: 0 } })).toBe(100)
+    expect(accuracyOf({ 0: { verdict: 'best', cp: 30, loss: 0 }, 2: { verdict: 'blunder', cp: -400, loss: 430 } })!).toBeLessThan(70)
+    expect(accuracyOf({})).toBeNull()
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])

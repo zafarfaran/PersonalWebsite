@@ -34,6 +34,8 @@ export interface SavedGame {
   result: string
   /** Notes on your moves, keyed by ply. */
   notes: Record<number, MoveNote>
+  /** The opponent's accuracy in percent, once the computer has been through the game. */
+  theirAccuracy?: number
   /** Loaded from a PGN file rather than played here. */
   imported?: true
   /** Player names of a loaded game. */

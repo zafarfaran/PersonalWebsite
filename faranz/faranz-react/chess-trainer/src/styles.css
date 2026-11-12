@@ -139,6 +139,7 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .reply:first-of-type { border-top: 0; }
 .reply .t { flex: 1; }
 .reply .t small { display: block; color: var(--muted); }
+.row.accuracy { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .import { margin-bottom: 20px; }
 .import.over { border-color: var(--accent); }
 .import textarea { display: block; width: 100%; min-height: 96px; margin: 10px 0; padding: 10px; resize: vertical; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }

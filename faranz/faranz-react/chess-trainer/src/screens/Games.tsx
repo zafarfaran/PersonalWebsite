@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Board, type Arrow, type Highlight } from '../components/Board'
+import { accuracyOf, gameAccuracy, moveAccuracy, percent } from '../accuracy'
 import { Shell } from '../components/ui'
 import { fenKey, lastMoveOf, moveLabel, replay, sanOf, squaresOf } from '../chess'
 import { SIDE_NAME, openingById, other } from '../data'
@@ -78,6 +79,7 @@ export function Games() {
                   <small>
                     {when(g.at)} · {g.imported && `you were ${SIDE_NAME[g.side]} · `}{g.result} ·{' '}
                     {g.imported && !analysed(g) ? 'not analysed yet' : `${slips} ${slips === 1 ? 'mistake' : 'mistakes'} found so far`}
+                    {analysed(g) && ` · ${percent(accuracyOf(g.notes)!)} accuracy`}
                   </small>
                 </div>
                 <a className="btn primary" href={href('review', g.id)}>Review</a>
@@ -158,7 +160,14 @@ export function Review({ game }: { game: SavedGame }) {
           addFix(fenKey(fen), { fen, played: game.moves[i], best, bestCp: cap(before.cp), game: game.id, side: game.side })
         }
       }
-      saveGame({ ...game, notes })
+      // the opponent's moves are not noted one by one, only how accurate they were overall
+      const theirs = game.moves.flatMap((_, i) => {
+        const before = seen[i]
+        if (i % 2 === mine || !before) return []
+        const after = seen[i + 1]
+        return [moveAccuracy(cap(before.cp), cap(after ? -after.cp : replay(game.moves, i + 1).isCheckmate() ? 10000 : 0))]
+      })
+      saveGame({ ...game, notes, theirAccuracy: gameAccuracy(theirs) ?? undefined })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The chess engine stopped.')
     } finally {
@@ -187,6 +196,7 @@ export function Review({ game }: { game: SavedGame }) {
     if (better) arrows.push({ ...better, color: 'good' })
   }
   const fixes = Object.values(useStore().fixes).filter(f => f.game === game.id).length
+  const accuracy = analysed(game) ? accuracyOf(game.notes) : null
 
   return (
     <Shell
@@ -244,6 +254,20 @@ export function Review({ game }: { game: SavedGame }) {
 
           <div className="card">
             <div className="eyebrow">Your moves</div>
+            {accuracy !== null && (
+              <div className="row accuracy">
+                <b className="big">{percent(accuracy)}</b>
+                <div className="grow">
+                  <strong>accuracy</strong>
+                  <br />
+                  <span className="note">
+                    {game.theirAccuracy !== undefined && `${them}: ${percent(game.theirAccuracy)}. `}
+                    100% means every move was as good as the computer's choice.
+                    {unrated.length > 0 && ' Moves not checked yet are left out.'}
+                  </span>
+                </div>
+              </div>
+            )}
             <p>
               {counts('course')} from the course, {counts('best') + counts('good')} good, {counts('inaccuracy')} {counts('inaccuracy') === 1 ? 'inaccuracy' : 'inaccuracies'},{' '}
               {counts('mistake')} {counts('mistake') === 1 ? 'mistake' : 'mistakes'}, {counts('blunder')} {counts('blunder') === 1 ? 'blunder' : 'blunders'}
@@ -259,6 +283,7 @@ export function Review({ game }: { game: SavedGame }) {
                 <button className={'btn' + (unrated.length ? ' primary' : '')} onClick={analyse}>
                   {unrated.length ? 'Analyse with the computer' : 'Analyse again'}
                 </button>
+                <a className={'btn' + (unrated.length ? '' : ' primary')} href={href('again', game.id)}>Play the whole game again, with the right moves</a>
                 {fixes > 0 && <a className="btn" href={href('fix', game.id)}>Practise the {fixes} {fixes === 1 ? 'mistake' : 'mistakes'} from this game</a>}
               </div>
             )}

@@ -53,6 +53,15 @@ function Screen({ route }: { route: string[] }) {
         <NotFound what="saved game" />
       )
     }
+    case 'again': {
+      // one of your own games from move one, this time with the right moves
+      const saved = getState().games.find(g => g.id === a)
+      return saved ? (
+        <Game key={route.join('/')} opening={openingById(saved.opening) ?? freePlay(saved.side)} script={saved} from={saved.id} />
+      ) : (
+        <NotFound what="saved game" />
+      )
+    }
     case 'game': {
       const o = openingById(a ?? '')
       return o ? <Game key={o.id} opening={o} /> : <NotFound what="opening" />
@@ -114,7 +123,7 @@ export function App() {
           <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
-          <a href={href('games')} className={['games', 'review', 'fix', 'replay'].includes(route[0]) ? 'on' : ''}>My games</a>
+          <a href={href('games')} className={['games', 'review', 'fix', 'replay', 'again'].includes(route[0]) ? 'on' : ''}>My games</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
           <a href="https://faranz.com/">faranz.com ↗</a>
         </nav>
