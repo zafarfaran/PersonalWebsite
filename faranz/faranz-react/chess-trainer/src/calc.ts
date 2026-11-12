@@ -25,6 +25,10 @@ const COMBO_DEFS: ComboDef[] = [
   { lesson: 'caro-bishop-trap', first: 'g4', goal: 'Black\'s bishop on f5 is short of squares. Trap it with three pawn moves.' },
   { lesson: 'italian-d6-nf6', first: 'Ng5', last: 'Nxf8', goal: 'The f7 square is defended only once. Win a pawn by force in four moves.' },
   { lesson: 'italian-shilling', first: 'Qg5', goal: 'White has just grabbed the pawn on e5. Find the attack that ends in checkmate. Four moves.' },
+  { lesson: 'e4-petrov-trap', first: 'Qe2', goal: 'Black has just copied you and taken on e4. Win the queen in three moves. Black will move the attacked knight away.' },
+  { lesson: 'e4-philidor-trap', first: 'dxe5', goal: 'Black\'s queen is shut in by her own pieces. Find the two moves that leave Black with no good answer to a mate threat.' },
+  { lesson: 'e4-french-gift', first: 'Bxh7+', goal: 'Nothing guards h7 and the bishop on g4 is loose. Sacrifice, win the piece back and keep the attack going. Four moves.' },
+  { lesson: 'e4-owen-trap', first: 'Qh5+', goal: 'Black has taken on g2 and is about to win your rook. Ignore it and give checkmate in four moves. Black will attack your queen with the knight.' },
   { lesson: 'london-plan', first: 'Ne5', last: 'Qh6', goal: 'Carry out the London attack: knight forward, recapture toward the king, queen across, queen in. Four moves.' },
 ]
 

@@ -1,12 +1,14 @@
 import { london } from './london'
 import { italian } from './italian'
+import { e4 } from './e4'
 import { caro } from './caro'
 import { sicilian } from './sicilian'
+import { kid } from './kid'
 import type { Lesson, Opening } from './types'
 
 export * from './types'
 
-export const OPENINGS: Opening[] = [london, italian, caro, sicilian]
+export const OPENINGS: Opening[] = [london, italian, e4, caro, sicilian, kid]
 
 export const openingById = (id: string) => OPENINGS.find(o => o.id === id)
 

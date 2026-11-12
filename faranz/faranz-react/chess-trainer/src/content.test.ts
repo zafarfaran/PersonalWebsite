@@ -149,9 +149,12 @@ describe('guide', () => {
     }
   })
 
-  it('has a row for every drilled line of the Black openings', () => {
+  it('has a row for every drilled line of the Black openings and of the other defences to 1. e4', () => {
     const linked = new Set(GUIDE.flatMap(s => s.blocks).flatMap(b => b.rows.map(r => r.lesson)))
-    for (const o of OPENINGS.filter(o => o.side === 'b')) for (const l of drillLines(o)) expect(linked.has(l.id), l.id).toBe(true)
+    const listed = OPENINGS.filter(o => o.side === 'b' || o.id === 'e4')
+    // the two demonstrations of a trap are reached from the row of the line they belong to
+    const viaParent = ['e4-french-gift', 'e4-owen-trap']
+    for (const o of listed) for (const l of drillLines(o)) expect(linked.has(l.id) || viaParent.includes(l.id), l.id).toBe(true)
   })
 })
 

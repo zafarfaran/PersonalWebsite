@@ -1,8 +1,8 @@
 # Opening Trainer
 
 Source for the chess opening trainer served at `/chess/` on faranz.com
-(London System and Italian Game for White, Caro-Kann and Sicilian Dragon for
-Black, plus a guide to what to play against what: lessons, drills, memory training, practice
+(London System, Italian Game and answers to the other defences to 1. e4 for
+White, Caro-Kann, Sicilian Dragon and King's Indian for Black, plus a guide to what to play against what: lessons, drills, memory training, practice
 matches and play-on against Stockfish).
 
 The website does not build this folder. It serves the built copy in

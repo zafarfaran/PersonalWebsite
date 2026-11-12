@@ -27,7 +27,7 @@ export function OpeningMap({ o }: { o: Opening }) {
         <div>
           {(Object.keys(CHAPTERS) as Chapter[]).filter(ch => o.lessons.some(l => l.chapter === ch)).map(ch => (
             <div className="chapter" key={ch}>
-              <h2>{chapterName(ch, o.side)}</h2>
+              <h2>{chapterName(ch, o)}</h2>
               {o.lessons.filter(l => l.chapter === ch).map(l => {
                 n++
                 const isDone = !!s.lessons[l.id]

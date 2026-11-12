@@ -45,6 +45,8 @@ export interface Opening {
   setupNote: string
   /** Lesson whose final position is shown on the home card. */
   cardLesson: string
+  /** Chapter headings that differ from the usual ones. */
+  chapters?: Partial<Record<Chapter, string>>
   lessons: Lesson[]
 }
 
@@ -57,7 +59,8 @@ export const CHAPTERS: Record<Chapter, string> = {
 }
 
 /** Chapter heading for an opening: the "replies" belong to whoever you are playing against. */
-export const chapterName = (ch: Chapter, side: Side) => (ch === 'replies' && side === 'b' ? "White's other systems" : CHAPTERS[ch])
+export const chapterName = (ch: Chapter, o: Pick<Opening, 'side' | 'chapters'>) =>
+  o.chapters?.[ch] ?? (ch === 'replies' && o.side === 'b' ? "White's other systems" : CHAPTERS[ch])
 
 export const SIDE_NAME: Record<Side, string> = { w: 'White', b: 'Black' }
 export const other = (side: Side): Side => (side === 'w' ? 'b' : 'w')

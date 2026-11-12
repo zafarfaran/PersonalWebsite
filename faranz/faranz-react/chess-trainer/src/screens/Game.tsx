@@ -302,7 +302,7 @@ export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Le
                     ? 'This is a position from one of your games. Play it again from here and see if it goes better. I will rate each move you make.'
                     : lesson
                     ? 'The opening is over. From here there is no single right move, so play the position. I will rate each move you make.'
-                    : `Play a whole game with the ${opening.name}. ${them} plays the way real opponents commonly do, so each game goes a different way. I will rate each move once you leave the course lines.`}
+                    : `Play a whole game: ${opening.name}. ${them} plays the way real opponents commonly do, so each game goes a different way. I will rate each move once you leave the course lines.`}
                 </p>
               </>
             )}

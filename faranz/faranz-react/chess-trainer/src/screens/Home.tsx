@@ -19,7 +19,7 @@ export function Home() {
         <h1>
           <span className="good">~/chess</span> <span className="accent">$</span> opening-trainer
         </h1>
-        <p>Two openings for White and two defences for Black, learned one idea at a time: lessons, drills, memory training and practice games.</p>
+        <p>Two openings for White, an answer to every other defence to 1. e4, and three defences for Black, learned one idea at a time: lessons, drills, memory training and practice games.</p>
       </div>
 
       <div className="card row">
@@ -110,7 +110,7 @@ function OpeningCard({ o }: { o: Opening }) {
           <a className="btn primary" href={href('learn', next.id)}>{done === 0 ? 'Start' : done === o.lessons.length ? 'Revisit' : 'Continue'}</a>
           <a className="btn" href={href('o', o.id)}>Lessons</a>
         </div>
-        <div className="note">Next: {chapterName(next.chapter, o.side)} · {next.title}</div>
+        <div className="note">Next: {chapterName(next.chapter, o)} · {next.title}</div>
       </div>
       <div className="modes">
         <a className="mode" href={href('practise', 'o', o.id)}><b>Practise</b><span>Drill the lines from memory</span></a>
