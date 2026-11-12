@@ -215,3 +215,12 @@ td .meter { width: 110px; }
   .guide .reply { flex-wrap: wrap; }
   .guide .seen { flex: 1 1 100%; }
 }
+
+/* game review and calculation trainer */
+.moves.review button { background: none; border: 0; padding: 0 4px; border-radius: 4px; font-weight: 500; }
+.moves.review button:hover { background: var(--raised); }
+.moves.review button.bad { color: var(--bad); }
+.moves.review button.accent { color: var(--amber); }
+.moves.review button.cur { background: var(--accent); color: var(--accent-ink); }
+.moves.big { font-size: 18px; gap: 6px 14px; margin-bottom: 8px; }
+.card.row + .card { margin-top: 0; }

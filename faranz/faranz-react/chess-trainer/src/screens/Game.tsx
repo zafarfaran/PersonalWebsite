@@ -6,7 +6,7 @@ import { clean, fenKey, lastMoveOf, legalDests, replay, sanOf, type Square } fro
 import { SIDE_NAME, drillLines, other, sans, type Lesson, type Opening } from '../data'
 import { Engine, LEVELS, chooseMove, type Line } from '../engine'
 import { href } from '../router'
-import { updateSettings, useStore } from '../store'
+import { addFix, saveGame, updateSettings, useStore, type MoveNote } from '../store'
 
 interface Feedback {
   tone: 'good' | 'accent' | 'bad'
@@ -17,6 +17,8 @@ interface Pending {
   san: string
   from: Square
   to: Square
+  /** Index of the move in the game. */
+  ply: number
   fenBefore: string
   fenAfter: string
   /** Text to put in front of the verdict, e.g. a reminder of the course move. */
@@ -29,6 +31,9 @@ const PRE_MS = 500
 const REPLY_MS = 600
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 const cap = (cp: number) => Math.max(-1000, Math.min(1000, cp))
+/** Games shorter than this are not worth keeping for review. */
+const MIN_SAVED = 8
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 
 const standing = (cp: number) =>
   Math.abs(cp) < 80 ? 'about equal'
@@ -38,12 +43,15 @@ const standing = (cp: number) =>
 /**
  * A full game with your side of the opening. From move one, the opponent plays
  * from a book of common lines and then a human-like engine takes over until the game
- * ends. With `lesson`, the game starts from the end of that line instead.
+ * ends. With `lesson`, the game starts from the end of that line instead, and
+ * with `start` from the given moves (a position from one of your own games).
  * Every move of yours outside the course lines is rated by the engine.
  */
-export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson }) {
+export function Game({ opening, lesson, start }: { opening: Opening; lesson?: Lesson; start?: string[] }) {
   const them = SIDE_NAME[other(opening.side)]
-  const base = useMemo(() => (lesson ? sans(lesson) : []), [lesson])
+  const base = useMemo(() => start ?? (lesson ? sans(lesson) : []), [lesson, start])
+  const id = useRef(newId())
+  const notes = useRef<Record<number, MoveNote>>({})
   const book = useMemo(() => bookFor(opening), [opening])
   const game = useRef(replay(base))
   const engine = useRef<Engine | null>(null)
@@ -131,6 +139,12 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   function rate(mine: Pending, bestLine: Line, myCp: number, refutation: string | null) {
     const loss = cap(bestLine.cp) - cap(myCp)
     const bestSan = sanOf(mine.fenBefore, bestLine.from, bestLine.to)
+    const isBest = mine.from === bestLine.from && mine.to === bestLine.to
+    const verdict = isBest ? 'best' : loss < 60 ? 'good' : loss < 120 ? 'inaccuracy' : loss < 300 ? 'mistake' : 'blunder'
+    notes.current[mine.ply] = { verdict, best: isBest ? undefined : bestSan ?? undefined, loss: Math.max(0, loss), cp: myCp }
+    if (bestSan && (verdict === 'mistake' || verdict === 'blunder')) {
+      addFix(fenKey(mine.fenBefore), { fen: mine.fenBefore, played: mine.san, best: bestSan, bestCp: cap(bestLine.cp), game: id.current, side: opening.side })
+    }
     const pawns = (loss / 100).toFixed(1)
     const reply = refutation ? ` ${them}'s strongest reply is ${refutation}.` : ''
     let fb: Feedback
@@ -152,6 +166,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
 
   const play = (from: Square, to: Square) => {
     const taught = book.repertoire.get(fenKey(fen)) ?? []
+    const ply = g.history().length
     let san: string
     try {
       san = g.move({ from, to, promotion: 'q' }).san
@@ -162,12 +177,14 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
     const course = taught.find(t => clean(t.step.san) === clean(san))
     if (course) {
       // a move straight from the lessons needs no engine check
+      notes.current[ply] = { verdict: 'course' }
       setFeedback({ tone: 'good', title: `Course move · ${san}`, text: course.step.note ?? '' })
     } else {
       pending.current = {
         san,
         from,
         to,
+        ply,
         fenBefore: fen,
         fenAfter: g.fen(),
         pre: pre.current,
@@ -184,6 +201,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
     turnId.current++
     g.undo()
     g.undo()
+    for (const ply of Object.keys(notes.current)) if (+ply >= g.history().length) delete notes.current[+ply]
     pending.current = null
     setFeedback(null)
     setHint(false)
@@ -193,6 +211,8 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
   const newGame = () => {
     turnId.current++
     game.current = replay(base)
+    id.current = newId()
+    notes.current = {}
     pending.current = null
     setThinking(false)
     setFeedback(null)
@@ -226,6 +246,13 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
     : ''
   const status = result || (thinking ? `${them} is thinking…` : g.inCheck() ? 'You are in check.' : 'Your move')
   const won = g.isCheckmate() && theirTurn
+  const saved = history.length >= MIN_SAVED && history.length > base.length + 1
+
+  // keep the saved copy of this game up to date, so it can be reviewed later even if you leave half way
+  useEffect(() => {
+    if (!saved) return
+    saveGame({ id: id.current, at: Date.now(), opening: opening.id, side: opening.side, moves: history, result: result || 'Unfinished', notes: { ...notes.current } })
+  }, [history.length, over, feedback]) // eslint-disable-line react-hooks/exhaustive-deps
   const tally = [count(slips.inaccuracy, 'inaccuracy', 'inaccuracies'), count(slips.mistake, 'mistake', 'mistakes'), count(slips.blunder, 'blunder', 'blunders')].join(', ')
 
   return (
@@ -233,7 +260,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
       back={href('o', opening.id)}
       backLabel={opening.name}
       title={lesson ? `${opening.name} · ${lesson.title}` : opening.name}
-      mode={lesson ? 'Play on' : 'Full game'}
+      mode={start ? 'Replay from your game' : lesson ? 'Play on' : 'Full game'}
       right={<span className="count">{status}</span>}
     >
       <div className="trainer">
@@ -256,7 +283,8 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
                   Your slips this game: {tally}.
                 </p>
                 <div className="actions">
-                  <button className="btn primary" onClick={newGame}>New game</button>
+                  {saved && <a className="btn primary" href={href('review', id.current)}>Review this game</a>}
+                  <button className={'btn' + (saved ? '' : ' primary')} onClick={newGame}>{start ? 'Try again from here' : 'New game'}</button>
                   <a className="btn" href={href('o', opening.id)}>Back to {opening.name}</a>
                 </div>
               </>
@@ -270,7 +298,9 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
               <>
                 <div className="eyebrow">Coach</div>
                 <p>
-                  {lesson
+                  {start
+                    ? 'This is a position from one of your games. Play it again from here and see if it goes better. I will rate each move you make.'
+                    : lesson
                     ? 'The opening is over. From here there is no single right move, so play the position. I will rate each move you make.'
                     : `Play a whole game with the ${opening.name}. ${them} plays the way real opponents commonly do, so each game goes a different way. I will rate each move once you leave the course lines.`}
                 </p>
@@ -323,7 +353,7 @@ export function Game({ opening, lesson }: { opening: Opening; lesson?: Lesson })
           <div className="actions">
             <button className="btn" onClick={() => setHint(true)} disabled={over || theirTurn || !bestHere || hint}>Hint</button>
             <button className="btn" onClick={takeBack} disabled={!canTakeBack}>Take back</button>
-            <button className="btn" onClick={newGame}>New game</button>
+            <button className="btn" onClick={newGame}>{start ? 'Start again' : 'New game'}</button>
             {!over && <button className="btn" onClick={() => setResigned(true)}>Resign</button>}
           </div>
         </div>

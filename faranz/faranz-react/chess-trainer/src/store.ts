@@ -9,6 +9,42 @@ export interface LineStat extends Memory {
   matchClean: number
 }
 
+export type Verdict = 'course' | 'best' | 'good' | 'inaccuracy' | 'mistake' | 'blunder'
+
+/** What the computer made of one of your moves. */
+export interface MoveNote {
+  verdict: Verdict
+  /** The engine's first choice in the position, when it differs from your move. */
+  best?: string
+  /** Pawns' worth given away, in hundredths. */
+  loss?: number
+  /** Score after the move, from your side, in hundredths of a pawn. */
+  cp?: number
+}
+
+/** A full game you played, kept so it can be reviewed and replayed. */
+export interface SavedGame {
+  id: string
+  at: number
+  opening: string
+  side: 'w' | 'b'
+  moves: string[]
+  result: string
+  /** Notes on your moves, keyed by ply. */
+  notes: Record<number, MoveNote>
+}
+
+/** A position in which you went wrong, kept for the mistake drill. */
+export interface Fix extends Memory {
+  fen: string
+  played: string
+  best: string
+  /** Score of the best move, from your side. */
+  bestCp: number
+  game: string
+  side: 'w' | 'b'
+}
+
 export const PIECE_SETS = {
   staunty: 'Staunty',
   maestro: 'Maestro',
@@ -26,6 +62,12 @@ export interface State {
   setups: Record<string, number>
   /** Board trainer: best score per exercise. */
   vision: Record<string, number>
+  /** Calculation trainer: best streak per exercise, and solved combinations. */
+  calc: Record<string, number>
+  /** Full games, newest first. */
+  games: SavedGame[]
+  /** Mistakes from your games, keyed by position. */
+  fixes: Record<string, Fix>
   days: string[]
   settings: { pieces: keyof typeof PIECE_SETS; board: keyof typeof BOARDS; level: number }
 }
@@ -37,6 +79,9 @@ const fresh = (): State => ({
   cards: {},
   setups: {},
   vision: {},
+  calc: {},
+  games: [],
+  fixes: {},
   days: [],
   settings: { pieces: 'staunty', board: 'night', level: 2 },
 })
@@ -119,6 +164,34 @@ export function recordSetup(openingId: string, now = Date.now()) {
 
 export function recordVision(exercise: string, score: number, now = Date.now()) {
   set({ ...state, vision: { ...state.vision, [exercise]: Math.max(state.vision[exercise] ?? 0, score) }, days: withToday(state.days, now) })
+}
+
+export function recordCalc(exercise: string, score: number, now = Date.now()) {
+  set({ ...state, calc: { ...state.calc, [exercise]: Math.max(state.calc[exercise] ?? 0, score) }, days: withToday(state.days, now) })
+}
+
+const MAX_GAMES = 30
+
+/** Add a game, or replace the saved copy of the same game. Only the most recent games are kept. */
+export function saveGame(game: SavedGame) {
+  set({ ...state, games: [game, ...state.games.filter(g => g.id !== game.id)].slice(0, MAX_GAMES) })
+}
+
+export function deleteGame(id: string) {
+  const fixes = Object.fromEntries(Object.entries(state.fixes).filter(([, f]) => f.game !== id))
+  set({ ...state, games: state.games.filter(g => g.id !== id), fixes })
+}
+
+/** Remember a position you went wrong in. A position already being drilled keeps its schedule. */
+export function addFix(key: string, fix: Omit<Fix, 'box' | 'due'>, now = Date.now()) {
+  if (state.fixes[key]) return
+  set({ ...state, fixes: { ...state.fixes, [key]: { ...fix, box: 0, due: now } } })
+}
+
+export function recordFix(key: string, correct: boolean, now = Date.now()) {
+  const prev = state.fixes[key]
+  if (!prev) return
+  set({ ...state, fixes: { ...state.fixes, [key]: { ...prev, ...review(prev, correct, now) } }, days: withToday(state.days, now) })
 }
 
 export function updateSettings(patch: Partial<State['settings']>) {

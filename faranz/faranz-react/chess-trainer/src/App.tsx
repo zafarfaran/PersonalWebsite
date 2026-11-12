@@ -6,12 +6,15 @@ import { Learn } from './screens/Learn'
 import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
 import { OpeningMap } from './screens/OpeningMap'
+import { Calc } from './screens/Calc'
+import { Fix } from './screens/Fix'
 import { Game } from './screens/Game'
+import { Games, Review } from './screens/Games'
 import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
 import { Vision } from './screens/Vision'
-import { BOARDS, PIECE_SETS, updateSettings, useStore, type State } from './store'
+import { BOARDS, PIECE_SETS, getState, updateSettings, useStore, type State } from './store'
 
 function Screen({ route }: { route: string[] }) {
   const [page, a, b] = route
@@ -24,6 +27,25 @@ function Screen({ route }: { route: string[] }) {
       return <Vision />
     case 'guide':
       return <Guide />
+    case 'calc':
+      return <Calc />
+    case 'games':
+      return <Games />
+    case 'fix':
+      return <Fix key={a ?? 'all'} game={a} />
+    case 'review':
+      return <ReviewRoute id={a} />
+    case 'replay': {
+      // a position from one of your own games: everything before move `b`
+      const saved = getState().games.find(g => g.id === a)
+      const o = saved && openingById(saved.opening)
+      const ply = Number(b)
+      return saved && o && ply >= 0 && ply < saved.moves.length ? (
+        <Game key={route.join('/')} opening={o} start={saved.moves.slice(0, ply)} />
+      ) : (
+        <NotFound what="saved game" />
+      )
+    }
     case 'game': {
       const o = openingById(a ?? '')
       return o ? <Game key={o.id} opening={o} /> : <NotFound what="opening" />
@@ -55,6 +77,11 @@ function Screen({ route }: { route: string[] }) {
   }
 }
 
+function ReviewRoute({ id }: { id?: string }) {
+  const game = useStore().games.find(g => g.id === id)
+  return game ? <Review key={game.id} game={game} /> : <NotFound what="saved game" />
+}
+
 export function App() {
   const route = useRoute()
   const { settings } = useStore()
@@ -73,6 +100,8 @@ export function App() {
           <a href={href()} className={route.length === 0 ? 'on' : ''}>Home</a>
           <a href={href('guide')} className={route[0] === 'guide' ? 'on' : ''}>Guide</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
+          <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
+          <a href={href('games')} className={['games', 'review', 'fix', 'replay'].includes(route[0]) ? 'on' : ''}>My games</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
           <a href="https://faranz.com/">faranz.com ↗</a>
         </nav>

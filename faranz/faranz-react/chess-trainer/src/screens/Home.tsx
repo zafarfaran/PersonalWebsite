@@ -56,6 +56,27 @@ export function Home() {
         <span className="btn">Open</span>
       </a>
 
+      <a className="card row boardcard" href={href('calc')}>
+        <div className="grow">
+          <strong>Calculation trainer</strong>
+          <br />
+          <span className="note">Learn to see ahead: follow a few moves in your head without the board moving, and solve combinations you have to work out before you play.</span>
+        </div>
+        <span className="btn">Open</span>
+      </a>
+
+      <a className="card row boardcard" href={href('games')}>
+        <div className="grow">
+          <strong>My games</strong>
+          <br />
+          <span className="note">
+            Review your full games with the computer, replay them from any move, and practise the positions where you went wrong.
+            {s.games.length > 0 && ` ${s.games.length} saved, ${Object.keys(s.fixes).length} mistakes to fix.`}
+          </span>
+        </div>
+        <span className="btn">Open</span>
+      </a>
+
       {(['w', 'b'] as Side[]).map(side => (
         <section key={side}>
           <h2 className="sidehead">Play as {SIDE_NAME[side]}</h2>

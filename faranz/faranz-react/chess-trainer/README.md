@@ -17,3 +17,8 @@ npm run build:site   # rebuilds ../public/chess
 
 Opening content lives in `src/data/` (one file per opening; `side` says which
 colour the learner plays). The guide table is in `src/screens/Guide.tsx`.
+
+Full games are saved in the browser (`games` in `src/store.ts`) and can be
+reviewed with the engine (`src/screens/Games.tsx`); mistakes found there feed
+the mistake drill (`src/screens/Fix.tsx`). The calculation trainer's exercises
+are generated in `src/calc.ts`.

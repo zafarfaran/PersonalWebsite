@@ -155,6 +155,51 @@ describe('guide', () => {
   })
 })
 
+import { COMBOS, followRound } from './calc'
+import { verdictFor } from './screens/Games'
+
+describe('calculation trainer', () => {
+  it('every combination is a legal line that starts and ends with the solver', () => {
+    expect(COMBOS.length).toBeGreaterThanOrEqual(10)
+    for (const combo of COMBOS) {
+      const c = new Chess(combo.fen)
+      expect(c.turn(), combo.id).toBe(combo.side)
+      expect(combo.moves.length % 2, combo.id).toBe(1)
+      for (const san of combo.moves) expect(c.move(san).san, combo.id).toBe(san)
+    }
+  })
+
+  it('asks questions that have exactly one right answer among the options', () => {
+    for (const plies of [2, 4, 6, 8]) {
+      for (let n = 0; n < 150; n++) {
+        const round = followRound(plies)
+        const q = round.question
+        expect(round.moves.length).toBe(plies)
+        expect(new Set(q.options).size).toBe(q.options.length)
+        expect(q.options.filter(o => o === q.answer).length).toBe(1)
+        expect(q.options.length).toBeGreaterThanOrEqual(2)
+        if (q.kind === 'square') {
+          expect(placementOf(round.finalFen)[q.sq] ?? '').toBe(q.answer)
+        } else {
+          const legal = new Chess(round.finalFen).moves()
+          expect(q.options.filter(o => legal.includes(o))).toEqual([q.answer])
+        }
+      }
+    }
+  })
+})
+
+describe('game review', () => {
+  it('grades a move by how much it gives away', () => {
+    expect(verdictFor(50, 50, true)).toBe('best')
+    expect(verdictFor(50, 20, false)).toBe('good')
+    expect(verdictFor(50, -30, false)).toBe('inaccuracy')
+    expect(verdictFor(50, -150, false)).toBe('mistake')
+    expect(verdictFor(50, -400, false)).toBe('blunder')
+    expect(verdictFor(9990, 2000, false)).toBe('good') // still completely winning
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])
