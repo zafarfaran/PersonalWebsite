@@ -69,7 +69,13 @@ export interface State {
   /** Mistakes from your games, keyed by position. */
   fixes: Record<string, Fix>
   days: string[]
-  settings: { pieces: keyof typeof PIECE_SETS; board: keyof typeof BOARDS; level: number }
+  settings: {
+    pieces: keyof typeof PIECE_SETS
+    board: keyof typeof BOARDS
+    level: number
+    /** Random trainer: openings switched off. */
+    randomOff: string[]
+  }
 }
 
 const KEY = 'opening-trainer:v1'
@@ -83,7 +89,7 @@ const fresh = (): State => ({
   games: [],
   fixes: {},
   days: [],
-  settings: { pieces: 'staunty', board: 'night', level: 2 },
+  settings: { pieces: 'staunty', board: 'night', level: 2, randomOff: [] },
 })
 
 function load(): State {

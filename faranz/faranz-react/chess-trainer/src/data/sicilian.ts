@@ -627,6 +627,18 @@ export const sicilian: Opening = {
         m('Qxg4', 'The queen takes the knight. The bishop on d7 cannot take back because it is pinned to the king.'),
       ],
       outro: 'Play …Bg7 and castle first. Once your king has left the e8 square there is no check on b5, and …Ng4 becomes a real idea, which is why White usually stops it with f3.',
+      fix: {
+        at: 11,
+        intro: 'Go back to the moment White played Be3. The knight move came too early. Finish your kingside first.',
+        moves: [
+          m('Bg7', 'The Dragon bishop first.', {
+            mistakes: { Ng4: 'With your king still on e8 this loses a piece to Bb5+. Develop the bishop and castle first.' },
+          }),
+          m('f3', 'White takes the g4 square away from your knight, which shows how seriously White takes the idea.'),
+          m('O-O', 'Castle. Your king has left e8, so there is no check on b5 any more.'),
+        ],
+        outro: 'You have lost nothing by waiting. This is the start of the Yugoslav Attack, the main line of the Dragon.',
+      },
     },
     {
       id: 'sicilian-levenfish-trap',
@@ -650,6 +662,20 @@ export const sicilian: Opening = {
         m('Ne6+', 'The knight checks the king and uncovers White\'s queen at the same time. Whatever takes the knight, White\'s queen takes Black\'s queen.'),
       ],
       outro: 'Blocking the check instead also loses material. After 6. f4 play …Nc6 first, and the pawn push to e5 loses its sting.',
+      fix: {
+        at: 11,
+        intro: 'Go back to the moment White played f4. The usual bishop move lets the e-pawn run. Bring the knight out first.',
+        moves: [
+          m('Nc6', 'Knight first. It attacks d4 and, after a trade, brings a pawn to c6.', {
+            alts: { Bg7: 'Playable, but after e5 you have to know exactly where the knight goes, and g4 is the losing square. …Nc6 is simpler.' },
+          }),
+          m('Nxc6'),
+          m('bxc6', 'Take back toward the centre.'),
+          m('e5', 'White pushes anyway.'),
+          m('Nd7', 'Step back and attack the pawn. There is no check on b5 to worry about, because your pawn on c6 covers that square.'),
+        ],
+        outro: 'The pawn push that won the queen in the trap achieves nothing here. The Levenfish lesson shows how the line goes on.',
+      },
     },
     {
       id: 'sicilian-f4-qb6',
@@ -702,6 +728,24 @@ export const sicilian: Opening = {
         m('Qxd8', 'With the d-file open and the king gone from e8, nothing protects the queen.'),
       ],
       outro: 'Black is not forced to take on e5, but the other moves are unpleasant too: the knight has to go to g4 or d7, and White\'s e-pawn keeps coming. With the bishop already on g7 the trick fails: after Bxf7+ and Qxd8, your rook on h8 takes the queen back.',
+      fix: {
+        at: 11,
+        intro: 'Go back to the moment the bishop came to c4. Play the same two moves in the other order: bishop first, then knight.',
+        moves: [
+          m('Bg7', 'Bishop first. With f8 empty, your rook on h8 can reach d8 if the queen is ever taken there.', {
+            mistakes: { Nc6: 'One move too soon: after the knights come off, e5 is very strong. Bishop first.' },
+          }),
+          m('Be3', 'White develops.'),
+          m('Nc6', 'Now the knight.'),
+          m('Nxc6', 'White tries the same idea.'),
+          m('bxc6'),
+          m('e5', 'The same pawn push.'),
+          m('Ng4', 'The knight steps aside and attacks the bishop on e3 and the pawn on e5 at the same time.', {
+            alts: { dxe5: 'This no longer loses the queen, but …Ng4 is stronger.' },
+          }),
+        ],
+        outro: 'With the bishop on g7 the pawn push has turned against White. You are attacking two things at once, your queen is safe, and you are already better.',
+      },
     },
   ],
 }

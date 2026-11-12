@@ -560,6 +560,20 @@ export const kid: Opening = {
         m('Nxa8', 'Black will win the knight in the corner, but White has a rook for it.'),
       ],
       outro: 'The right answer to Nd5 is to take the knight: …Nxd5, and after cxd5 you play …c6 with an equal game. Before you take on e4 in these positions, check whether c7 is safe.',
+      fix: {
+        at: 17,
+        intro: 'Go back to the moment White\'s knight landed on d5. It attacks f6 and c7. Deal with the knight first, and leave the pawn on e4 alone.',
+        moves: [
+          m('Nxd5', 'Take the knight. With it gone, nothing attacks c7.', {
+            mistakes: { Nxe4: 'That leaves c7 without a defender, and Nxc7 wins the rook in the corner. Take the knight on d5.' },
+          }),
+          m('cxd5', 'White takes back with the c-pawn.'),
+          m('c6', 'Attack the advanced pawn at once, before White can support it.'),
+          m('dxc6'),
+          m('Nxc6', 'Recapture with the knight. It develops and looks at d4, a square no White pawn can ever cover again.'),
+        ],
+        outro: 'The game is equal and all your pieces have good squares. Your rook already stands on the open d-file, and the knight is heading for d4.',
+      },
     },
   ],
 }

@@ -373,6 +373,20 @@ export const caro: Opening = {
         m('h5', 'The bishop has no square left. White wins a piece.'),
       ],
       outro: 'The cure is one pawn move. In the Advance, answer h4 with …h5. In the Classical, answer h4 with …h6. Either way the bishop keeps a way out.',
+      fix: {
+        at: 7,
+        intro: 'Go back to the moment White pushed the h-pawn, and play the move that keeps the bishop safe.',
+        moves: [
+          m('h5', 'Stop the g-pawn. White can no longer play g4 without losing a pawn, so the bishop cannot be chased.', {
+            mistakes: { e6: 'That is the move that loses the bishop. Play …h5 first.' },
+          }),
+          m('Bd3', 'White offers a trade of bishops instead.'),
+          m('Bxd3', 'Accept. Your bishop got out, and it takes White\'s better bishop with it.'),
+          m('Qxd3'),
+          m('e6', 'Now the pawn can go to e6. Your bishop is off the board, so there is nothing left to trap.'),
+        ],
+        outro: 'One pawn move, and the plan with g4 and h5 is gone. White\'s pawn on h4 has left a hole on g4 that your pieces can use.',
+      },
     },
     {
       id: 'caro-fantasy-trap',
@@ -460,6 +474,20 @@ export const caro: Opening = {
         m('Qf7#', 'Checkmate. The bishop on c4 protects the queen, and Black\'s own pieces fill every escape square.'),
       ],
       outro: 'Even with the best defence on move ten Black is in trouble. The fix comes much earlier: when White has played Nc3 and Nf3 without d4, pin the knight with …Bg4.',
+      fix: {
+        at: 5,
+        intro: 'Go back to move three. White has both knights out and has not played d4. Leave the e4 pawn alone and bring the bishop out to the other square.',
+        moves: [
+          m('Bg4', 'Pin the knight. It can no longer jump to e5, and on g4 your bishop is out of reach of a knight on g3.', {
+            alts: { dxe4: 'Taking is playable, but then you must remember not to follow up with …Bf5. …Bg4 avoids the whole problem.' },
+          }),
+          m('h3', 'White asks the bishop.'),
+          m('Bxf3', 'Take the knight. The piece that was heading for e5 is gone.'),
+          m('Qxf3'),
+          m('e6', 'Close the diagonal to f7. There is no knight to land on e5 and no bishop to chase, so the attack never starts.'),
+        ],
+        outro: 'You have given up a bishop for a knight and have a solid position with no weaknesses. In the trap that same bishop was chased from f5 to g6 to h7 while White built the attack.',
+      },
     },
     {
       id: 'caro-early-nf6',
@@ -486,6 +514,24 @@ export const caro: Opening = {
         m('Qf5#', 'Checkmate. The knight on g3 protects the queen, and the king stands in the way of its own bishop.'),
       ],
       outro: 'Black can avoid the mate by not taking the knight, but then loses the rook on h8. Play …Nd7 first: if the knight comes to e5 you trade it, and only then does the other knight go to f6.',
+      fix: {
+        at: 13,
+        intro: 'Go back to move seven. White has just played Nf3 and wants to put the knight on e5. Play the knight move that covers that square, and see what happens if White jumps in anyway.',
+        moves: [
+          m('Nd7', 'Cover e5 before White gets there.', {
+            mistakes: { Nf6: 'That is the move order from the trap: the knight lands on e5 and you cannot trade it. Play …Nd7 first.' },
+          }),
+          m('Ne5', 'White jumps in anyway. With your knight on d7 this is a mistake.'),
+          m('Nxe5', 'Trade it off at once.'),
+          m('dxe5', 'White has to take back with the pawn, and the pawn is now a long way from its friends.'),
+          m('Qa5+', 'Check, and the queen attacks the pawn on e5 at the same time.', {
+            alts: { 'Qxd1+': 'Trading queens is fine, but the check wins a pawn.' },
+          }),
+          m('c3', 'White blocks the check.'),
+          m('Qxe5+', 'Take the pawn, with check.'),
+        ],
+        outro: 'You have won a pawn, and the knight that mated you in the trap lasted one move on e5. This is why White normally answers …Nd7 with h5 and Bd3, as in the main line.',
+      },
     },
   ],
 }

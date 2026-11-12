@@ -13,6 +13,15 @@ export interface Step {
 
 export type Side = 'w' | 'b'
 
+/** For a trap you have to avoid: the same line with the right move in place of the mistake. */
+export interface Fix {
+  /** How many moves of the lesson are kept. The fix starts on your move after them. */
+  at: number
+  intro: string
+  moves: Step[]
+  outro: string
+}
+
 export type Chapter = 'idea' | 'main' | 'replies' | 'traps' | 'variations'
 
 export interface Lesson {
@@ -33,6 +42,8 @@ export interface Lesson {
   plan?: string
   /** Short name for the opponent's choice, revealed during a match. */
   reply?: string
+  /** Traps to avoid: what to play instead, as a line you play yourself. */
+  fix?: Fix
 }
 
 export interface Opening {

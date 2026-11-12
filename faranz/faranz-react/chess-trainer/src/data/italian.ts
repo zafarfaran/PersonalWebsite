@@ -521,6 +521,20 @@ export const italian: Opening = {
         m('Nf3#', 'Checkmate. The king is boxed in by its own pieces, and the pinned bishop cannot capture the knight.'),
       ],
       outro: 'Eight moves, and White is mated. The cure is simple: on move four, take the knight on d4 instead of the pawn on e5.',
+      fix: {
+        at: 6,
+        intro: 'Go back to move four. The pawn on e5 is bait. Take the knight.',
+        moves: [
+          m('Nxd4', 'Capture the knight that moved twice. Black\'s queen never gets to g5 with a double attack.', {
+            mistakes: { Nxe5: 'That is the bait. …Qg5 follows and it ends in checkmate. Take the knight.' },
+          }),
+          m('exd4', 'Black takes back. The pawn on d4 is out on its own.'),
+          m('c3', 'Attack it at once.'),
+          m('dxc3'),
+          m('Nxc3', 'Recapture with the knight. You have two pieces out and Black has none.'),
+        ],
+        outro: 'No queen raid and no tricks. Black has no pieces out at all, and you are ready to castle and open the centre.',
+      },
     },
     {
       id: 'italian-fried-liver',
@@ -625,6 +639,22 @@ export const italian: Opening = {
         m('Qh4#', 'Checkmate. The bishop on c5 covers g1 and the pawn on g4 covers h3.'),
       ],
       outro: 'The knight on g4 does nothing by itself. It becomes dangerous only when you open the h-file by taking it. Leave it alone and play d4, which hits the bishop on c5 and leaves Black with a misplaced knight and a weak pawn on h5.',
+      fix: {
+        at: 14,
+        intro: 'Go back to the moment Black defended the knight with the h-pawn. Leave the knight where it is and hit back in the centre.',
+        moves: [
+          m('d4', 'Open the centre and attack the bishop. The knight on g4 can wait: it is dangerous only if you take it.', {
+            mistakes: { hxg4: 'That opens the h-file for Black\'s rook, which is the whole point of the trap. Leave the knight and play d4.' },
+          }),
+          m('Bb6', 'The bishop steps back.'),
+          m('Ng5', 'Your own knight goes forward. It attacks f7 together with the bishop on c4, and it stands in the way of Black\'s queen coming to h4.'),
+          m('Nh6', 'Black has to bring the knight back to defend f7. The fishing pole has caught nothing.'),
+          m('d5', 'Push the other knight away.'),
+          m('Ne7'),
+          m('Qxh5', 'Take the pawn that was holding the knight up. The rook on h8 cannot capture your queen, because its own knight on h6 is in the way.'),
+        ],
+        outro: 'You are a pawn up with a strong centre, and the h-file is still closed. Do not take the knight on g4 while Black\'s rook stands behind the h-pawn.',
+      },
     },
   ],
 }

@@ -14,6 +14,7 @@ import { Games, Review } from './screens/Games'
 import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
+import { Random } from './screens/Random'
 import { Traps } from './screens/Traps'
 import { Vision } from './screens/Vision'
 import { BOARDS, PIECE_SETS, getState, updateSettings, useStore, type State } from './store'
@@ -31,6 +32,8 @@ function Screen({ route }: { route: string[] }) {
       return <Guide />
     case 'traps':
       return <Traps />
+    case 'random':
+      return <Random />
     case 'calc':
       return <Calc />
     case 'games':
@@ -72,7 +75,7 @@ function Screen({ route }: { route: string[] }) {
     }
     case 'learn': {
       const found = lessonById(a ?? '')
-      return found ? <Learn {...found} /> : <NotFound what="lesson" />
+      return found ? <Learn {...found} fixing={b === 'fix'} /> : <NotFound what="lesson" />
     }
     case 'play': {
       const found = lessonById(a ?? '')
@@ -107,6 +110,7 @@ export function App() {
         <nav>
           <a href={href()} className={route.length === 0 ? 'on' : ''}>Home</a>
           <a href={href('guide')} className={route[0] === 'guide' ? 'on' : ''}>Guide</a>
+          <a href={href('random')} className={route[0] === 'random' ? 'on' : ''}>Random</a>
           <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>

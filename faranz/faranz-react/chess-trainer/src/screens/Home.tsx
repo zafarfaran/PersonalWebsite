@@ -38,6 +38,18 @@ export function Home() {
         <a className="btn" href={href('progress')}>See progress</a>
       </div>
 
+      <a className="card row boardcard" href={href('random')}>
+        <div className="grow">
+          <strong>Random trainer</strong>
+          <br />
+          <span className="note">
+            Lines from all your openings in random order, played from memory. You are told the opening, not the line. The London,
+            Italian, Caro-Kann and Sicilian come up most, and so do the lines you get wrong.
+          </span>
+        </div>
+        <span className="btn primary">Start</span>
+      </a>
+
       <div className="tools">
         <a className="card row boardcard" href={href('board')}>
           <div className="grow">

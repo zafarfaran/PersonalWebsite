@@ -139,6 +139,9 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .reply:first-of-type { border-top: 0; }
 .reply .t { flex: 1; }
 .reply .t small { display: block; color: var(--muted); }
+.pickrow { cursor: pointer; }
+.pickrow input { accent-color: var(--accent); width: 16px; height: 16px; }
+.pickrow + .setting { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 
 /* home */

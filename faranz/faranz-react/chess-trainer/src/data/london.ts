@@ -521,6 +521,22 @@ export const london: Opening = {
         m('Qxb2', 'The queen that was guarding b2 is gone. Black takes the pawn and attacks the rook on a1, which has no defender and nowhere safe to go. White loses the rook.'),
       ],
       outro: 'The lesson is bigger than this one trap. In the London your bishop leaves c1 early, so b2 is always a little tender. Before you move your queen, check that b2 is still covered.',
+      fix: {
+        at: 12,
+        intro: 'Go back to the moment the bishop came to f5. It attacks your queen, and your queen is the only defender of b2. Move her to a square from which she still guards the pawn.',
+        moves: [
+          m('Qc1', 'Step back and keep b2 covered. The bishop on f5 now attacks nothing.', {
+            mistakes: { Qxf5: 'That takes the queen away from b2, and …Qxb2 wins the rook. Keep the pawn covered.' },
+          }),
+          m('e6', 'Black supports the bishop and develops.'),
+          m('Nd2', 'Develop as usual.'),
+          m('Nf6'),
+          m('Be2'),
+          m('Be7'),
+          m('Ngf3', 'Your usual setup is complete, and b2 was never in danger.'),
+        ],
+        outro: 'Nothing is hanging and you are ready to castle. After that, b3 challenges the pawn on c4 and lets your queen back into the game.',
+      },
     },
     {
       id: 'london-poisoned-pawn',

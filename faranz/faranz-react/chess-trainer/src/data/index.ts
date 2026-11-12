@@ -4,6 +4,7 @@ import { e4 } from './e4'
 import { caro } from './caro'
 import { sicilian } from './sicilian'
 import { kid } from './kid'
+import { moveLabel } from '../chess'
 import type { Lesson, Opening } from './types'
 
 export * from './types'
@@ -33,3 +34,18 @@ export const trapLessons = (o: Opening) => o.lessons.filter(l => l.chapter === '
 export const repertoireLines = (o: Opening) => drillLines(o).filter(l => l.chapter !== 'variations')
 
 export const sans = (l: Lesson) => l.moves.map(s => s.san)
+
+/** The fix of a trap lesson as a guided line of its own: the lesson up to the mistake, then the right moves. */
+export function fixLesson(l: Lesson): Lesson | undefined {
+  const { fix, plan: _plan, ...rest } = l
+  return fix && {
+    ...rest,
+    id: l.id + '-fix',
+    title: `The right move: ${moveLabel(fix.at)} ${fix.moves[0].san}`,
+    kind: 'guided',
+    drill: false,
+    intro: fix.intro,
+    moves: [...l.moves.slice(0, fix.at), ...fix.moves],
+    outro: fix.outro,
+  }
+}

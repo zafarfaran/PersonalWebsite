@@ -10,6 +10,8 @@ interface Props {
   side: Side
   /** learn: the move is shown and explained first. practise and match: from memory. */
   mode: 'learn' | 'practise' | 'match'
+  /** Start with this many moves already played. Must be a position where it is your move. */
+  start?: number
   /** Match only: the lines the opponent could be playing, used to hide the line's name until it is certain. */
   pool?: Lesson[]
   onDone: (cleanRun: boolean) => void
@@ -29,9 +31,9 @@ const lookup = (map: Record<string, string> | undefined, san: string) =>
   Object.entries(map ?? {}).find(([k]) => clean(k) === clean(san))?.[1]
 
 /** Plays through one line: you move your side, the opponent's replies are played for you. */
-export function Drill({ lesson, side, mode, pool, onDone, after }: Props) {
+export function Drill({ lesson, side, mode, start = 0, pool, onDone, after }: Props) {
   const line = useMemo(() => sans(lesson), [lesson])
-  const [ply, setPly] = useState(0)
+  const [ply, setPly] = useState(start)
   const [fb, setFb] = useState<Feedback | null>(null)
   const [hint, setHint] = useState(0) // 0 none, 1 piece highlighted, 2 move shown
   const [slips, setSlips] = useState(0)
@@ -134,7 +136,7 @@ export function Drill({ lesson, side, mode, pool, onDone, after }: Props) {
         ) : learn ? (
           <div className="card">
             <div className="eyebrow">Coach</div>
-            {ply <= mine && <p>{lesson.intro}</p>}
+            {ply <= Math.max(mine, start) && <p>{lesson.intro}</p>}
             {prevTheirs && (
               <p className="muted">
                 {them} played {moveLabel(ply - 1)} {prevTheirs.san}. {prevTheirs.note}
@@ -204,7 +206,7 @@ export function Drill({ lesson, side, mode, pool, onDone, after }: Props) {
 }
 
 /** Step through a line with Next and Back; both sides are played for you. */
-export function Demo({ lesson, side, onDone, after }: { lesson: Lesson; side: Side; onDone: () => void; after: ReactNode }) {
+export function Demo({ lesson, side, onDone, after, skip }: { lesson: Lesson; side: Side; onDone: () => void; after: ReactNode; skip?: ReactNode }) {
   const line = useMemo(() => sans(lesson), [lesson])
   const [ply, setPly] = useState(0)
   const game = useMemo(() => replay(line, ply), [line, ply])
@@ -252,7 +254,7 @@ export function Demo({ lesson, side, onDone, after }: { lesson: Lesson; side: Si
         <div className="actions">
           <button className="btn" onClick={() => setPly(ply - 1)} disabled={ply === 0}>◀ Back</button>
           {!done && <button className="btn primary grow" onClick={() => setPly(ply + 1)}>Next ▶</button>}
-          {done && after}
+          {done ? after : skip}
         </div>
         {!done && <div className="note">Move {Math.ceil(ply / 2)} of {Math.ceil(line.length / 2)}. You can also use the arrow keys.</div>}
       </div>

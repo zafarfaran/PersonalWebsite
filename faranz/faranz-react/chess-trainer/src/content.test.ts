@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { Chess } from 'chess.js'
-import { OPENINGS, drillLines, lessonById, sans } from './data'
+import { OPENINGS, drillLines, fixLesson, lessonById, repertoireLines, sans } from './data'
 import { clean, fenKey, placementFen, placementOf, replay } from './chess'
 import { DAY, review, streak, dayStamp } from './srs'
+import type { State } from './store'
+import type { Lesson } from './data'
 
 const lessons = OPENINGS.flatMap(o => o.lessons)
 
@@ -170,6 +172,88 @@ describe('guide', () => {
   it('marks every trap as one you set or one you avoid', () => {
     for (const l of lessons) expect(!!l.trap, l.id).toBe(l.chapter === 'traps')
     for (const o of OPENINGS) expect(new Set(o.lessons.map(l => l.trap)).size, o.id).toBe(3)
+  })
+})
+
+describe('trap fixes', () => {
+  const fixed = lessons.filter(l => l.fix)
+
+  it('every watched trap you have to avoid comes with the right move to play', () => {
+    for (const l of lessons) expect(!!l.fix, l.id).toBe(l.trap === 'avoid' && l.kind === 'demo')
+  })
+
+  it.each(fixed.map(l => [l.id, l] as const))('%s: the fix is a legal line that starts and ends on your move', (_, l) => {
+    const yours = lessonById(l.id)!.opening.side === 'w' ? 0 : 1
+    const line = fixLesson(l)!
+    const c = new Chess()
+    line.moves.forEach((step, i) => {
+      expect(c.move(step.san).san, `${l.id} move ${i + 1}`).toBe(step.san)
+    })
+    expect(l.fix!.at % 2, 'starts on your move').toBe(yours)
+    expect(line.moves.length % 2, 'ends on your move').toBe(1 - yours)
+    expect(l.fix!.moves[0].san).not.toBe(l.moves[l.fix!.at].san)
+    // the hints on each step are legal moves other than the answer
+    l.fix!.moves.forEach((step, i) => {
+      const legal = replay(sans(line), l.fix!.at + i).moves().map(clean)
+      for (const san of Object.keys({ ...step.alts, ...step.mistakes })) {
+        expect(legal, `${l.id}: ${san}`).toContain(clean(san))
+        expect(clean(san)).not.toBe(clean(step.san))
+      }
+    })
+  })
+
+  it('never contradicts the repertoire', () => {
+    for (const o of OPENINGS) {
+      const book = new Map<string, string>()
+      for (const l of repertoireLines(o)) {
+        sans(l).forEach((san, i) => { if (i % 2 === (o.side === 'w' ? 0 : 1)) book.set(fenKey(replay(sans(l), i).fen()), san) })
+      }
+      for (const l of o.lessons.filter(l => l.fix)) {
+        const line = sans(fixLesson(l)!)
+        for (let i = l.fix!.at; i < line.length; i += 2) {
+          const known = book.get(fenKey(replay(line, i).fen()))
+          if (known) expect(line[i], `${l.id} move ${i + 1}`).toBe(known)
+        }
+      }
+    }
+  })
+})
+
+import { FOCUS, drawLine, lineWeight } from './random'
+
+describe('random trainer', () => {
+  const blank = { lines: {} } as unknown as State
+  const seq = (...xs: number[]) => { let i = 0; return () => xs[i++ % xs.length] }
+
+  it('draws from every opening, the focus openings most often, and only repertoire lines', () => {
+    const count: Record<string, number> = {}
+    let k = 0
+    const rnd = () => ((k += 0.6180339887) % 1)
+    for (let i = 0; i < 3000; i++) {
+      const d = drawLine(blank, 'all', [], undefined, rnd)!
+      expect(d.lesson.drill && d.lesson.chapter !== 'variations', d.lesson.id).toBe(true)
+      expect(d.opening.lessons).toContain(d.lesson)
+      count[d.opening.id] = (count[d.opening.id] ?? 0) + 1
+    }
+    expect(Object.keys(count).sort()).toEqual(OPENINGS.map(o => o.id).sort())
+    for (const id of FOCUS) expect(count[id], id).toBeGreaterThan(2 * Math.max(count.e4, count.kid))
+  })
+
+  it('leaves out openings that are switched off and the line just played', () => {
+    const only = OPENINGS.filter(o => o.id !== 'london').map(o => o.id)
+    for (const x of [0, 0.3, 0.7, 0.999]) {
+      expect(drawLine(blank, 'all', only, undefined, seq(x))!.opening.id).toBe('london')
+      expect(drawLine(blank, 'all', only, 'london-main', seq(0))!.lesson.id).not.toBe('london-main')
+    }
+    expect(drawLine(blank, 'all', OPENINGS.map(o => o.id))).toBeUndefined()
+    expect(drawLine(blank, 'learned', [])).toBeUndefined()
+  })
+
+  it('brings up missed and new lines more often than known ones', () => {
+    const line = (box: number, last: 'clean' | 'missed') => ({ lines: { x: { box, due: 0, runs: 3, clean: 1, last, matches: 0, matchClean: 0 } } }) as unknown as State
+    const l = { id: 'x' } as Lesson
+    expect(lineWeight(l, line(0, 'missed'))).toBeGreaterThan(lineWeight(l, blank))
+    expect(lineWeight(l, blank)).toBeGreaterThan(lineWeight(l, line(5, 'clean')))
   })
 })
 
