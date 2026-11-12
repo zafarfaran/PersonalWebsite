@@ -173,6 +173,36 @@ describe('guide', () => {
   })
 })
 
+import { SEE, childrenOf, linksFor, parentOf, rootsOf } from './links'
+
+describe('lesson links', () => {
+  it('points only at lessons that exist, and never at itself', () => {
+    for (const [id, ids] of Object.entries(SEE)) {
+      expect(lessonById(id), id).toBeTruthy()
+      for (const other of ids) {
+        expect(lessonById(other), other).toBeTruthy()
+        expect(other).not.toBe(id)
+      }
+    }
+  })
+
+  it('puts every lesson in the tree of its opening exactly once', () => {
+    for (const o of OPENINGS) {
+      const seen: string[] = []
+      const walk = (id: string) => { seen.push(id); childrenOf(id).forEach(l => walk(l.id)) }
+      rootsOf(o).forEach(l => walk(l.id))
+      expect(seen.sort()).toEqual(o.lessons.map(l => l.id).sort())
+    }
+  })
+
+  it('connects a line to the lesson it branches from and to the traps its text mentions', () => {
+    expect(parentOf('london-hfile-mate')).toMatchObject({ lesson: { id: 'london-bd6' }, at: '9… b6' })
+    expect(linksFor('london-benoni').map(l => `${l.kind} ${l.lesson.id}`)).toContain('to london-poisoned-pawn')
+    expect(linksFor('e4-scandi-queen-sac').map(l => `${l.kind} ${l.lesson.id}`)).toContain('see italian-legal')
+    expect(linksFor('italian-legal').map(l => `${l.kind} ${l.lesson.id}`)).toContain('see e4-scandi-queen-sac')
+  })
+})
+
 import { COMBOS, followRound } from './calc'
 import { verdictFor } from './screens/Games'
 

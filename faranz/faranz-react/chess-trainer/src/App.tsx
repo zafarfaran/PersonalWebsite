@@ -3,6 +3,7 @@ import { lessonById, openingById } from './data'
 import { href, useRoute } from './router'
 import { Home, NotFound } from './screens/Home'
 import { Learn } from './screens/Learn'
+import { LessonMap } from './screens/LessonMap'
 import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
 import { OpeningMap } from './screens/OpeningMap'
@@ -56,6 +57,10 @@ function Screen({ route }: { route: string[] }) {
     case 'o': {
       const o = openingById(a ?? '')
       return o ? <OpeningMap o={o} /> : <NotFound what="opening" />
+    }
+    case 'map': {
+      const o = openingById(a ?? '')
+      return o ? <LessonMap o={o} current={b} /> : <NotFound what="opening" />
     }
     case 'match': {
       const o = openingById(a ?? '')

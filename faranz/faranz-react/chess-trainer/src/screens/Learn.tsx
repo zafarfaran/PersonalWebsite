@@ -1,8 +1,10 @@
 import { Demo, Drill } from '../components/Drill'
 import { Shell } from '../components/ui'
 import type { Lesson, Opening } from '../data'
+import { seeAlso } from '../links'
 import { href } from '../router'
 import { completeLesson } from '../store'
+import { Connected } from './LessonMap'
 
 export function Learn({ opening, lesson }: { opening: Opening; lesson: Lesson }) {
   const i = opening.lessons.indexOf(lesson)
@@ -13,6 +15,9 @@ export function Learn({ opening, lesson }: { opening: Opening; lesson: Lesson })
     <>
       {lesson.drill && <a className="btn primary" href={href('practise', 'line', lesson.id)}>Practise this line</a>}
       {next && <a className={'btn' + (lesson.drill ? '' : ' primary')} href={href('learn', next.id)}>Next lesson ▶</a>}
+      {seeAlso(lesson.id).slice(0, 3).map(link => (
+        <a key={link.lesson.id} className="btn" href={href('learn', link.lesson.id)}>See also: {link.lesson.title}</a>
+      ))}
       <a className="btn" href={href('o', opening.id)}>All lessons</a>
     </>
   )
@@ -30,6 +35,7 @@ export function Learn({ opening, lesson }: { opening: Opening; lesson: Lesson })
       ) : (
         <Drill key={lesson.id} lesson={lesson} side={opening.side} mode="learn" onDone={done} after={after} />
       )}
+      <Connected opening={opening} lesson={lesson} />
     </Shell>
   )
 }

@@ -55,6 +55,7 @@ export function OpeningMap({ o }: { o: Opening }) {
           <a className="btn" href={href('match', o.id)}>Play a practice match</a>
           <a className="btn" href={href('game', o.id)}>Play a full game</a>
           <a className="btn" href={href('memorise', o.id)}>Memory trainer</a>
+          <a className="btn" href={href('map', o.id)}>Lesson map</a>
         </div>
       </div>
     </Shell>
