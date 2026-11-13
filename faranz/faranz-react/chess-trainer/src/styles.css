@@ -265,6 +265,14 @@ td .meter { width: 110px; }
 .moves.review button:hover { background: var(--raised); }
 .moves.review button.bad { color: var(--bad); }
 .moves.review button.accent { color: var(--amber); }
+.moves.review button.noted::after { content: '•'; margin-left: 2px; color: var(--accent); }
+.moves.review button.noted.cur::after { color: inherit; }
+.annotate { display: block; margin-top: 12px; }
+.annotate textarea { display: block; width: 100%; min-height: 64px; margin-top: 6px; padding: 10px; resize: vertical; font: inherit; font-size: 14px; line-height: 1.5; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
+.mynote { display: block; width: 100%; padding: 8px 10px; margin-top: 6px; text-align: left; font: inherit; color: var(--text); background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.mynote:hover, .mynote.cur { background: var(--raised); }
+.mynote b { display: block; font-size: 12px; color: var(--muted); }
+.mynote span { white-space: pre-wrap; overflow-wrap: anywhere; }
 .moves.review button.cur { background: var(--accent); color: var(--accent-ink); }
 .moves.big { font-size: 18px; gap: 6px 14px; margin-bottom: 8px; }
 .card.row + .card { margin-top: 0; }

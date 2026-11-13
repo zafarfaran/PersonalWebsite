@@ -34,6 +34,8 @@ export interface SavedGame {
   result: string
   /** Notes on your moves, keyed by ply. */
   notes: Record<number, MoveNote>
+  /** Your own notes, keyed by the ply of the move they are about; -1 is a note on the whole game. */
+  comments?: Record<number, string>
   /** The opponent's accuracy in percent, once the computer has been through the game. */
   theirAccuracy?: number
   /** Loaded from a PGN file rather than played here. */
@@ -195,6 +197,20 @@ const MAX_GAMES = 100
 export function saveGame(game: SavedGame) {
   const games = [game, ...state.games.filter(g => g.id !== game.id)].sort((a, b) => b.at - a.at)
   set({ ...state, games: games.slice(0, MAX_GAMES) })
+}
+
+/** Write, change or (with empty text) remove your note on a move of a saved game. */
+export function annotate(id: string, ply: number, text: string) {
+  set({
+    ...state,
+    games: state.games.map(g => {
+      if (g.id !== id) return g
+      const comments = { ...g.comments }
+      if (text.trim()) comments[ply] = text
+      else delete comments[ply]
+      return { ...g, comments }
+    }),
+  })
 }
 
 export function deleteGame(id: string) {

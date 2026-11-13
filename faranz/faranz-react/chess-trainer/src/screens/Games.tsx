@@ -7,7 +7,7 @@ import { SIDE_NAME, openingById, other } from '../data'
 import { Engine } from '../engine'
 import { href } from '../router'
 import { isDue } from '../srs'
-import { addFix, deleteGame, saveGame, useStore, type MoveNote, type SavedGame, type Verdict } from '../store'
+import { addFix, annotate, deleteGame, getState, saveGame, useStore, type MoveNote, type SavedGame, type Verdict } from '../store'
 import { Import } from './Import'
 
 const ANALYSE_MS = 300
@@ -34,6 +34,7 @@ const standing = (cp: number) =>
   : cp > -200 ? 'slightly worse for you' : cp > -500 ? 'clearly worse for you' : 'losing for you'
 
 const slipsOf = (g: SavedGame) => Object.values(g.notes).filter(n => n.verdict === 'mistake' || n.verdict === 'blunder').length
+const commentsOf = (g: SavedGame) => Object.keys(g.comments ?? {}).length
 const analysed = (g: SavedGame) => Object.values(g.notes).some(n => n.cp !== undefined)
 const titleOf = (g: SavedGame) => (g.imported ? `${g.white} vs ${g.black}` : openingById(g.opening)?.name ?? 'Game')
 const when = (t: number) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ', ' + new Date(t).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
@@ -80,6 +81,7 @@ export function Games() {
                     {when(g.at)} · {g.imported && `you were ${SIDE_NAME[g.side]} · `}{g.result} ·{' '}
                     {g.imported && !analysed(g) ? 'not analysed yet' : `${slips} ${slips === 1 ? 'mistake' : 'mistakes'} found so far`}
                     {analysed(g) && ` · ${percent(accuracyOf(g.notes)!)} accuracy`}
+                    {commentsOf(g) > 0 && ` · ${commentsOf(g)} ${commentsOf(g) === 1 ? 'note' : 'notes'} of yours`}
                   </small>
                 </div>
                 <a className="btn primary" href={href('review', g.id)}>Review</a>
@@ -116,6 +118,7 @@ export function Review({ game }: { game: SavedGame }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLTextAreaElement) return // the arrow keys move the cursor in your note
       if (e.key === 'ArrowRight') setPly(p => Math.min(game.moves.length, p + 1))
       if (e.key === 'ArrowLeft') setPly(p => Math.max(0, p - 1))
     }
@@ -167,7 +170,9 @@ export function Review({ game }: { game: SavedGame }) {
         const after = seen[i + 1]
         return [moveAccuracy(cap(before.cp), cap(after ? -after.cp : replay(game.moves, i + 1).isCheckmate() ? 10000 : 0))]
       })
-      saveGame({ ...game, notes, theirAccuracy: gameAccuracy(theirs) ?? undefined })
+      // notes you wrote while the computer was working are kept
+      const comments = getState().games.find(g => g.id === game.id)?.comments ?? game.comments
+      saveGame({ ...game, comments, notes, theirAccuracy: gameAccuracy(theirs) ?? undefined })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The chess engine stopped.')
     } finally {
@@ -197,6 +202,8 @@ export function Review({ game }: { game: SavedGame }) {
   }
   const fixes = Object.values(useStore().fixes).filter(f => f.game === game.id).length
   const accuracy = analysed(game) ? accuracyOf(game.notes) : null
+  const comments = game.comments ?? {}
+  const noted = Object.keys(comments).map(Number).sort((a, b) => a - b)
 
   return (
     <Shell
@@ -244,6 +251,14 @@ export function Review({ game }: { game: SavedGame }) {
                 </div>
               </>
             )}
+            <label className="annotate">
+              <span className="eyebrow">{shown < 0 ? 'My notes on the game' : `My note on ${moveLabel(shown)} ${game.moves[shown]}`}</span>
+              <textarea
+                value={comments[shown] ?? ''}
+                onChange={e => annotate(game.id, shown, e.target.value)}
+                placeholder={shown < 0 ? 'What was the story of this game? What do you want to remember?' : 'What did you miss here? What should you look for next time?'}
+              />
+            </label>
             <div className="actions">
               <button className="btn" onClick={() => setPly(0)} disabled={ply === 0}>⏮</button>
               <button className="btn" onClick={() => setPly(ply - 1)} disabled={ply === 0}>◀ Back</button>
@@ -299,16 +314,28 @@ export function Review({ game }: { game: SavedGame }) {
                 return (
                   <span key={i} className="mv">
                     {i % 2 === 0 && <span className="num">{i / 2 + 1}.</span>}
-                    <button className={(i === shown ? 'cur ' : '') + (flagged ? tone : '')} onClick={() => setPly(i + 1)}>{san}</button>
+                    <button className={(i === shown ? 'cur ' : '') + (comments[i] ? 'noted ' : '') + (flagged ? tone : '')} onClick={() => setPly(i + 1)}>{san}</button>
                   </span>
                 )
               })}
             </div>
             <p className="note">
-              Red: mistake or blunder. Amber: inaccuracy.
+              Red: mistake or blunder. Amber: inaccuracy. A dot: a note of yours.
               {game.link && <> <a href={game.link} target="_blank" rel="noreferrer">Open the game on {new URL(game.link).hostname.replace(/^www\./, '')} ↗</a></>}
             </p>
           </div>
+
+          {noted.length > 0 && (
+            <div className="card">
+              <div className="eyebrow">My notes</div>
+              {noted.map(i => (
+                <button key={i} className={'mynote' + (i === shown ? ' cur' : '')} onClick={() => setPly(i + 1)}>
+                  <b>{i < 0 ? 'The game' : `${moveLabel(i)} ${game.moves[i]}`}</b>
+                  <span>{comments[i]}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Shell>
