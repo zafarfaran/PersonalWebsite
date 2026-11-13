@@ -7,7 +7,7 @@ import { SIDE_NAME, openingById, other } from '../data'
 import { Engine } from '../engine'
 import { href } from '../router'
 import { isDue } from '../srs'
-import { addFix, annotate, deleteGame, getState, saveGame, useStore, type MoveNote, type SavedGame, type Verdict } from '../store'
+import { addFix, annotate, deleteGame, getState, markGame, saveGame, useStore, type MoveNote, type SavedGame, type Verdict } from '../store'
 import { Import } from './Import'
 
 const ANALYSE_MS = 300
@@ -104,6 +104,7 @@ export function Review({ game }: { game: SavedGame }) {
   const [ply, setPly] = useState(game.imported && !analysed(game) ? 0 : game.moves.length)
   const [progress, setProgress] = useState<number | null>(null)
   const [error, setError] = useState('')
+  const [draw, setDraw] = useState(false)
   const engine = useRef<Engine | null>(null)
   const cancelled = useRef(false)
 
@@ -170,9 +171,9 @@ export function Review({ game }: { game: SavedGame }) {
         const after = seen[i + 1]
         return [moveAccuracy(cap(before.cp), cap(after ? -after.cp : replay(game.moves, i + 1).isCheckmate() ? 10000 : 0))]
       })
-      // notes you wrote while the computer was working are kept
-      const comments = getState().games.find(g => g.id === game.id)?.comments ?? game.comments
-      saveGame({ ...game, comments, notes, theirAccuracy: gameAccuracy(theirs) ?? undefined })
+      // notes and marks you made while the computer was working are kept
+      const now = getState().games.find(g => g.id === game.id) ?? game
+      saveGame({ ...game, comments: now.comments, marks: now.marks, notes, theirAccuracy: gameAccuracy(theirs) ?? undefined })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'The chess engine stopped.')
     } finally {
@@ -204,6 +205,7 @@ export function Review({ game }: { game: SavedGame }) {
   const accuracy = analysed(game) ? accuracyOf(game.notes) : null
   const comments = game.comments ?? {}
   const noted = Object.keys(comments).map(Number).sort((a, b) => a - b)
+  const marks = game.marks ?? {}
 
   return (
     <Shell
@@ -214,7 +216,7 @@ export function Review({ game }: { game: SavedGame }) {
       right={<span className="count">{when(game.at)} · {game.result}</span>}
     >
       <div className="trainer">
-        <Board fen={fen} coords flip={game.side === 'b'} highlights={highlights} arrows={arrows} />
+        <Board fen={fen} coords flip={game.side === 'b'} highlights={highlights} arrows={arrows} markable draw={draw} marks={marks[shown] ?? []} onMarks={list => markGame(game.id, shown, list)} />
         <div className="panel">
           <div className="card">
             {shown < 0 ? (
@@ -259,6 +261,14 @@ export function Review({ game }: { game: SavedGame }) {
                 placeholder={shown < 0 ? 'What was the story of this game? What do you want to remember?' : 'What did you miss here? What should you look for next time?'}
               />
             </label>
+            <div className="actions">
+              <button className={'btn' + (draw ? ' primary' : '')} onClick={() => setDraw(!draw)} aria-pressed={draw}>✎ {draw ? 'Marking: tap or drag on the board' : 'Mark the board'}</button>
+              {marks[shown] && <button className="btn" onClick={() => markGame(game.id, shown, [])}>Clear marks</button>}
+            </div>
+            <p className="note">
+              Right-click a square to mark it, drag with the right button to draw an arrow. Hold Shift, Alt or Ctrl for green, blue or yellow. Do it again to remove one; a
+              left click on the board clears them all. Marks are saved with the move.
+            </p>
             <div className="actions">
               <button className="btn" onClick={() => setPly(0)} disabled={ply === 0}>⏮</button>
               <button className="btn" onClick={() => setPly(ply - 1)} disabled={ply === 0}>◀ Back</button>
@@ -314,13 +324,13 @@ export function Review({ game }: { game: SavedGame }) {
                 return (
                   <span key={i} className="mv">
                     {i % 2 === 0 && <span className="num">{i / 2 + 1}.</span>}
-                    <button className={(i === shown ? 'cur ' : '') + (comments[i] ? 'noted ' : '') + (flagged ? tone : '')} onClick={() => setPly(i + 1)}>{san}</button>
+                    <button className={(i === shown ? 'cur ' : '') + (comments[i] || marks[i] ? 'noted ' : '') + (flagged ? tone : '')} onClick={() => setPly(i + 1)}>{san}</button>
                   </span>
                 )
               })}
             </div>
             <p className="note">
-              Red: mistake or blunder. Amber: inaccuracy. A dot: a note of yours.
+              Red: mistake or blunder. Amber: inaccuracy. A dot: a note or board marks of yours.
               {game.link && <> <a href={game.link} target="_blank" rel="noreferrer">Open the game on {new URL(game.link).hostname.replace(/^www\./, '')} ↗</a></>}
             </p>
           </div>

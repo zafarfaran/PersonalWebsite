@@ -12,6 +12,14 @@ export interface Arrow {
   color?: 'accent' | 'good' | 'bad'
 }
 
+export type MarkColor = 'main' | 'green' | 'blue' | 'yellow'
+/** Something you drew on the board: a coloured square, or an arrow when it has a `to`. */
+export interface Mark {
+  from: Square
+  to?: Square
+  color: MarkColor
+}
+
 interface Props {
   fen: string
   /** Legal destinations per square. Pieces can only be moved when this is given. */
@@ -26,6 +34,13 @@ interface Props {
   coords?: boolean
   /** Show the board from Black's side. */
   flip?: boolean
+  /** Let you mark squares and draw arrows with the right mouse button. A left click wipes them. */
+  markable?: boolean
+  /** Also draw with the left button or a finger, for screens without a right click. */
+  draw?: boolean
+  /** Your marks, when the screen keeps them. Left out, the board keeps them itself until the position changes. */
+  marks?: Mark[]
+  onMarks?: (marks: Mark[]) => void
 }
 
 interface Piece {
@@ -69,7 +84,7 @@ function reconcile(prev: Piece[], fen: string, nextId: { current: number }): Pie
   return out
 }
 
-export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arrows = [], coords, flip = false }: Props) {
+export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arrows = [], coords, flip = false, markable, draw, marks, onMarks }: Props) {
   const { pieces: pieceSet } = useStore().settings
   const el = useRef<HTMLDivElement>(null)
   const nextId = useRef(1)
@@ -78,6 +93,11 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
 
   const [selected, setSelected] = useState<Square | null>(null)
   const [drag, setDrag] = useState<{ sq: Square; dx: number; dy: number; x0: number; y0: number } | null>(null)
+
+  const [own, setOwn] = useState<{ fen: string; list: Mark[] }>({ fen, list: [] })
+  const [stroke, setStroke] = useState<Mark | null>(null)
+  const drawn = marks ?? (own.fen === fen ? own.list : [])
+  const setDrawn = (list: Mark[]) => (onMarks ? onMarks(list) : setOwn({ fen, list }))
 
   const at = (sq: Square) => pieces.find(p => p.sq === sq)
   const interactive = !!onMove && (free || !!dests)
@@ -97,9 +117,22 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
     return flip ? FILES[7 - f] + (rank + 1) : FILES[f] + (8 - rank)
   }
 
+  const capture = (e: PointerEvent) => {
+    try {
+      el.current!.setPointerCapture(e.pointerId)
+    } catch {
+      // capture is a nicety (keeps the drag alive outside the board); moves work without it
+    }
+  }
+
   const down = (e: PointerEvent) => {
     const sq = squareAt(e)
     if (!sq) return
+    if (markable && (e.button === 2 || draw)) {
+      setStroke({ from: sq, to: sq, color: e.shiftKey ? 'green' : e.altKey ? 'blue' : e.ctrlKey ? 'yellow' : 'main' })
+      return capture(e)
+    }
+    if (markable && drawn.length) setDrawn([])
     if (onSquare) return onSquare(sq)
     if (!interactive) return
     if (selected && selected !== sq && canMove(selected, sq)) {
@@ -108,17 +141,25 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
     } else if (movable(sq)) {
       setSelected(sq)
       setDrag({ sq, dx: 0, dy: 0, x0: e.clientX, y0: e.clientY })
-      try {
-        el.current!.setPointerCapture(e.pointerId)
-      } catch {
-        // capture is a nicety (keeps the drag alive outside the board); moves work without it
-      }
+      capture(e)
     } else setSelected(null)
   }
   const move = (e: PointerEvent) => {
+    if (stroke) {
+      const sq = squareAt(e)
+      if (sq && sq !== stroke.to) setStroke({ ...stroke, to: sq })
+    }
     if (drag) setDrag({ ...drag, dx: e.clientX - drag.x0, dy: e.clientY - drag.y0 })
   }
   const up = (e: PointerEvent) => {
+    if (stroke) {
+      setStroke(null)
+      const mark: Mark = stroke.to === stroke.from ? { from: stroke.from, color: stroke.color } : stroke
+      const same = (m: Mark) => m.from === mark.from && m.to === mark.to
+      // the same mark a second time rubs it out; in another colour it is recoloured
+      const repeat = drawn.find(same)?.color === mark.color
+      return setDrawn([...drawn.filter(m => !same(m)), ...(repeat ? [] : [mark])])
+    }
     if (!drag) return
     const sq = squareAt(e)
     setDrag(null)
@@ -129,20 +170,26 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
   }
 
   const hl = new Map(highlights.map(h => [h.sq, h.kind]))
+  const marked = new Map(drawn.filter(m => !m.to).map(m => [m.from, m.color]))
+  const lines: { from: Square; to: Square; color: string }[] = [
+    ...arrows.map(a => ({ ...a, color: a.color ?? 'accent' })),
+    ...[...drawn, ...(stroke ? [stroke] : [])].flatMap(m => (m.to && m.to !== m.from ? [{ from: m.from, to: m.to, color: m.color }] : [])),
+  ]
 
   return (
     <div
       ref={el}
-      className={'board' + (interactive || onSquare ? ' live' : '')}
+      className={'board' + (interactive || onSquare || draw ? ' live' : '')}
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}
-      onPointerCancel={() => setDrag(null)}
+      onPointerCancel={() => (setDrag(null), setStroke(null))}
+      onContextMenu={markable ? e => e.preventDefault() : undefined}
     >
       <div className="squares">
         {(flip ? FLIPPED : SQUARES).map(sq => {
           const dark = (FILES.indexOf(sq[0]) + +sq[1]) % 2 === 1
-          const cls = ['sq', dark ? 'dark' : '', hl.get(sq) ?? '', selected === sq ? 'sel' : ''].filter(Boolean).join(' ')
+          const cls = ['sq', dark ? 'dark' : '', hl.get(sq) ?? '', selected === sq ? 'sel' : '', marked.has(sq) ? 'm-' + marked.get(sq) : ''].filter(Boolean).join(' ')
           return (
             <div key={sq} className={cls}>
               {coords && sq[1] === (flip ? '8' : '1') && <span className="co file">{sq[0]}</span>}
@@ -168,9 +215,9 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
           />
         )
       })}
-      {arrows.length > 0 && (
+      {lines.length > 0 && (
         <svg viewBox="0 0 8 8" className="arrows">
-          {arrows.map((a, i) => {
+          {lines.map((a, i) => {
             const [fx, fy] = xy(a.from, flip)
             const [tx, ty] = xy(a.to, flip)
             const [x1, y1, x2, y2] = [fx + 0.5, fy + 0.5, tx + 0.5, ty + 0.5]
@@ -178,7 +225,7 @@ export function Board({ fen, dests, free, onMove, onSquare, highlights = [], arr
             const [ux, uy] = [(x2 - x1) / len, (y2 - y1) / len]
             const [bx, by] = [x2 - ux * 0.4, y2 - uy * 0.4] // base of the arrow head
             return (
-              <g key={i} className={'arrow ' + (a.color ?? 'accent')}>
+              <g key={i} className={'arrow ' + a.color}>
                 <line x1={x1 + ux * 0.3} y1={y1 + uy * 0.3} x2={bx} y2={by} />
                 <polygon points={`${x2 - ux * 0.1},${y2 - uy * 0.1} ${bx - uy * 0.24},${by + ux * 0.24} ${bx + uy * 0.24},${by - ux * 0.24}`} />
               </g>

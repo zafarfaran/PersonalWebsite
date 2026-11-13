@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import type { Mark } from './components/Board'
 import { dayStamp, review, type Memory } from './srs'
 
 export interface LineStat extends Memory {
@@ -36,6 +37,8 @@ export interface SavedGame {
   notes: Record<number, MoveNote>
   /** Your own notes, keyed by the ply of the move they are about; -1 is a note on the whole game. */
   comments?: Record<number, string>
+  /** Squares and arrows you drew on the board, keyed like your notes. */
+  marks?: Record<number, Mark[]>
   /** The opponent's accuracy in percent, once the computer has been through the game. */
   theirAccuracy?: number
   /** Loaded from a PGN file rather than played here. */
@@ -216,6 +219,20 @@ export function annotate(id: string, ply: number, text: string) {
       if (text.trim()) comments[ply] = text
       else delete comments[ply]
       return { ...g, comments }
+    }),
+  })
+}
+
+/** Keep the squares and arrows you drew on a position of a saved game. */
+export function markGame(id: string, ply: number, list: Mark[]) {
+  set({
+    ...state,
+    games: state.games.map(g => {
+      if (g.id !== id) return g
+      const marks = { ...g.marks }
+      if (list.length) marks[ply] = list
+      else delete marks[ply]
+      return { ...g, marks }
     }),
   })
 }

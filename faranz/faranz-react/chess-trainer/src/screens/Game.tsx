@@ -322,6 +322,7 @@ export function Game({ opening, lesson, start, from, script }: { opening: Openin
         <Board
           fen={fen}
           coords
+          markable
           flip={opening.side === 'b'}
           dests={!theirTurn && !over ? legalDests(fen) : undefined}
           onMove={play}

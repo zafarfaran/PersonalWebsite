@@ -131,6 +131,7 @@ export function Fix({ game }: { game?: string }) {
           key={card.key}
           fen={card.fen}
           coords
+          markable
           flip={card.side === 'b'}
           dests={state === 'right' || state === 'checking' ? undefined : legalDests(card.fen)}
           onMove={play}

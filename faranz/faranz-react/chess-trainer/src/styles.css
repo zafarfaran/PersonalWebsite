@@ -107,6 +107,11 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .sq.hint::before { background: rgba(254, 128, 25, 0.8); }
 .sq.good::before { background: rgba(184, 187, 38, 0.7); }
 .sq.bad::before { background: rgba(251, 73, 52, 0.7); }
+.sq[class*='m-']::after { content: ''; position: absolute; inset: 0; }
+.sq.m-main::after { background: rgba(235, 97, 80, 0.8); }
+.sq.m-green::after { background: rgba(172, 206, 89, 0.8); }
+.sq.m-blue::after { background: rgba(82, 176, 220, 0.8); }
+.sq.m-yellow::after { background: rgba(255, 200, 40, 0.8); }
 .co { position: absolute; font-size: 2cqw; font-weight: 700; color: var(--sq-dark); }
 .sq.dark .co { color: var(--sq-light); }
 .co.file { right: 5%; bottom: 2%; }
@@ -124,6 +129,10 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .arrow.accent { color: var(--amber); }
 .arrow.good { color: var(--good); }
 .arrow.bad { color: var(--bad); }
+.arrow.main { color: #ff9f1a; }
+.arrow.green { color: #9fc23f; }
+.arrow.blue { color: #52b0dc; }
+.arrow.yellow { color: #ffd23f; }
 @media (prefers-reduced-motion: reduce) { .piece { transition: none; } }
 
 /* trainer layout */
