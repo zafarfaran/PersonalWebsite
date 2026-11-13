@@ -77,6 +77,8 @@ export interface State {
   vision: Record<string, number>
   /** Calculation trainer: best streak per exercise, and solved combinations. */
   calc: Record<string, number>
+  /** Endgame training: 1 for a position you have solved, 2 once solved with no slip and no hint. */
+  endgames: Record<string, number>
   /** Full games, newest first. */
   games: SavedGame[]
   /** Mistakes from your games, keyed by position. */
@@ -101,6 +103,7 @@ const fresh = (): State => ({
   setups: {},
   vision: {},
   calc: {},
+  endgames: {},
   games: [],
   fixes: {},
   days: [],
@@ -189,6 +192,10 @@ export function recordVision(exercise: string, score: number, now = Date.now()) 
 
 export function recordCalc(exercise: string, score: number, now = Date.now()) {
   set({ ...state, calc: { ...state.calc, [exercise]: Math.max(state.calc[exercise] ?? 0, score) }, days: withToday(state.days, now) })
+}
+
+export function recordEndgame(drill: string, clean: boolean, now = Date.now()) {
+  set({ ...state, endgames: { ...state.endgames, [drill]: Math.max(state.endgames[drill] ?? 0, clean ? 2 : 1) }, days: withToday(state.days, now) })
 }
 
 const MAX_GAMES = 100

@@ -396,6 +396,63 @@ describe('accuracy', () => {
   })
 })
 
+import { ENDGAMES, ENDGAME_DRILLS, ENDGAME_GROUPS } from './data/endgames'
+import { mateIn, reached, slipped } from './endgame'
+
+describe('endgames', () => {
+  /** A position is only legal if the side that has just moved is not in check. */
+  const legal = (fen: string) => {
+    const [board, turn, ...rest] = fen.split(' ')
+    new Chess(fen)
+    return !new Chess([board, turn === 'w' ? 'b' : 'w', ...rest].join(' ')).isCheck()
+  }
+
+  it('has legal positions and playable example lines', () => {
+    const ids = [...ENDGAMES.map(t => t.id), ...ENDGAME_DRILLS.map(d => d.drill.id)]
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const t of ENDGAMES) {
+      expect(ENDGAME_GROUPS, t.id).toContain(t.group)
+      expect(t.text.length, t.id).toBeGreaterThan(0)
+      for (const d of t.drills) {
+        expect(legal(d.fen), d.id).toBe(true)
+        expect(new Chess(d.fen).isGameOver(), d.id).toBe(false)
+      }
+      if (!t.demo) continue
+      expect(legal(t.demo.fen), t.id).toBe(true)
+      const c = new Chess(t.demo.fen)
+      for (const m of t.demo.moves) expect(c.move(m.san).san, `${t.id} ${m.san}`).toBe(m.san)
+    }
+    const end = (id: string) => {
+      const d = ENDGAMES.find(t => t.id === id)!.demo!
+      const c = new Chess(d.fen)
+      d.moves.forEach(m => c.move(m.san))
+      return c
+    }
+    expect(end('queen-mate').isCheckmate()).toBe(true)
+    expect(end('rook-mate').isCheckmate()).toBe(true)
+    expect(end('ladder').isCheckmate()).toBe(true)
+    expect(end('defend-pawn').isStalemate()).toBe(true)
+    expect(end('rook-pawn').isStalemate()).toBe(true)
+    expect(end('square').isInsufficientMaterial()).toBe(true)
+  })
+
+  it('knows when a position is won, held or thrown away', () => {
+    expect(slipped('mate', 9900)).toBe(false)
+    expect(slipped('win', 0)).toBe(true)
+    expect(slipped('draw', 0)).toBe(false)
+    expect(slipped('draw', -9800)).toBe(true)
+    const pawn = '4k3/8/4K3/4P3/8/8/8/8 w - - 0 1'
+    expect(reached('win', pawn, '4k3/8/4K3/4P3/8/8/8/8 b - - 0 1', 9900)).toBe(false) // nothing has happened yet
+    expect(reached('win', pawn, '4Q3/5k2/3K4/8/8/8/8/8 b - - 0 1', 9900)).toBe(true) // a new queen
+    expect(reached('win', pawn, '4Q3/5k2/3K4/8/8/8/8/8 b - - 0 1', 0)).toBe(false) // which is about to be taken
+    const queen = '8/8/1K6/8/7Q/8/3kp3/8 w - - 0 1'
+    expect(reached('win', queen, '8/8/1K6/8/7Q/8/3kp3/8 b - - 0 1', 9800)).toBe(false)
+    expect(reached('win', queen, '8/8/8/8/8/4K3/4Q3/6k1 b - - 0 1', 9950)).toBe(true) // the pawn is gone
+    expect(reached('mate', queen, '8/8/8/8/8/4K3/4Q3/6k1 b - - 0 1', 9950)).toBe(false)
+    expect([mateIn(9970), mateIn(-9990), mateIn(350)]).toEqual([3, 1, null])
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { freePlay, lessonById, openingById } from './data'
+import { endgameById } from './data/endgames'
 import { href, useRoute } from './router'
 import { Home, NotFound } from './screens/Home'
 import { Learn } from './screens/Learn'
@@ -8,6 +9,7 @@ import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
 import { OpeningMap } from './screens/OpeningMap'
 import { Calc } from './screens/Calc'
+import { EndgameDrill, EndgameTopic, Endgames } from './screens/Endgames'
 import { Fix } from './screens/Fix'
 import { Game } from './screens/Game'
 import { Games, Review } from './screens/Games'
@@ -36,6 +38,14 @@ function Screen({ route }: { route: string[] }) {
       return <Random />
     case 'calc':
       return <Calc />
+    case 'endgames':
+      return <Endgames />
+    case 'endgame': {
+      const topic = endgameById(a ?? '')
+      const drill = topic?.drills.find(d => d.id === b)
+      if (!topic || (b && !drill)) return <NotFound what="endgame lesson" />
+      return drill ? <EndgameDrill key={drill.id} topic={topic} drill={drill} /> : <EndgameTopic key={topic.id} topic={topic} />
+    }
     case 'games':
       return <Games />
     case 'fix':
@@ -123,6 +133,7 @@ export function App() {
           <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
+          <a href={href('endgames')} className={['endgames', 'endgame'].includes(route[0]) ? 'on' : ''}>Endgames</a>
           <a href={href('games')} className={['games', 'review', 'fix', 'replay', 'again'].includes(route[0]) ? 'on' : ''}>My games</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
           <a href="https://faranz.com/">faranz.com ↗</a>

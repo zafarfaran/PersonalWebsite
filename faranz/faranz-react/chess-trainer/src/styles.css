@@ -267,6 +267,17 @@ td .meter { width: 110px; }
 .moves.review button.accent { color: var(--amber); }
 .moves.review button.noted::after { content: '•'; margin-left: 2px; color: var(--accent); }
 .moves.review button.noted.cur::after { color: inherit; }
+.theory { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 28px; align-items: start; }
+.theory .text p { max-width: 68ch; }
+.rules { margin: 0; padding-left: 18px; }
+.rules li { margin-bottom: 6px; }
+.topic { display: block; color: var(--text); padding: 10px 0; border-top: 1px solid var(--line); }
+.topic:first-of-type { border-top: 0; }
+.topic:hover { text-decoration: none; }
+.topic:hover b { color: var(--accent); }
+.topic small { display: block; color: var(--muted); }
+.topic .pill { float: right; margin-left: 10px; }
+@media (max-width: 900px) { .theory { grid-template-columns: minmax(0, 1fr); } }
 .annotate { display: block; margin-top: 12px; }
 .annotate textarea { display: block; width: 100%; min-height: 64px; margin-top: 6px; padding: 10px; resize: vertical; font: inherit; font-size: 14px; line-height: 1.5; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
 .mynote { display: block; width: 100%; padding: 8px 10px; margin-top: 6px; text-align: left; font: inherit; color: var(--text); background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }

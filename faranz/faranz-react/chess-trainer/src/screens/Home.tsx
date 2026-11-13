@@ -2,6 +2,7 @@ import { Board } from '../components/Board'
 import { Meter } from '../components/ui'
 import { replay } from '../chess'
 import { OPENINGS, SIDE_NAME, chapterName, drillLines, lessonById, openingById, sans, type Opening, type Side } from '../data'
+import { ENDGAME_DRILLS } from '../data/endgames'
 import { dueLines, lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
 import { streak } from '../srs'
@@ -83,6 +84,18 @@ export function Home() {
             <strong>Calculation trainer</strong>
             <br />
             <span className="note">Learn to see ahead: follow a few moves in your head without the board moving, and solve combinations you have to work out before you play.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
+
+        <a className="card row boardcard" href={href('endgames')}>
+          <div className="grow">
+            <strong>Endgames</strong>
+            <br />
+            <span className="note">
+              The endings every player has to know: the basic checkmates, king and pawn, rook endings. Short theory, then positions to play out against the computer.
+              {Object.keys(s.endgames).length > 0 && ` ${Object.keys(s.endgames).length} of ${ENDGAME_DRILLS.length} positions solved.`}
+            </span>
           </div>
           <span className="btn">Open</span>
         </a>

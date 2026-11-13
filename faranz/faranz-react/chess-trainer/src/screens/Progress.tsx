@@ -1,5 +1,6 @@
 import { Meter, Shell } from '../components/ui'
 import { OPENINGS, drillLines } from '../data'
+import { ENDGAME_DRILLS } from '../data/endgames'
 import { cardsFor, dueLines, lessonsDone } from '../lib'
 import { href } from '../router'
 import { dueLabel, isDue, streak, strength } from '../srs'
@@ -22,6 +23,7 @@ export function Progress() {
         <div className="stat"><b>{Object.keys(s.lines).length}</b><span>lines learned</span></div>
         <div className="stat"><b>{due.length}</b><span>due today</span></div>
         <div className="stat"><b>{knownCards} / {allCards.length}</b><span>positions memorised</span></div>
+        <div className="stat"><b>{Object.keys(s.endgames).length} / {ENDGAME_DRILLS.length}</b><span>endgame positions solved</span></div>
         <div className="stat"><b>{days}</b><span>{days === 1 ? 'day streak' : 'days streak'}</span></div>
         <span className="spacer" />
         {due.length > 0 && <a className="btn primary" href={href('practise', 'due')}>Review {due.length} {due.length === 1 ? 'line' : 'lines'}</a>}
