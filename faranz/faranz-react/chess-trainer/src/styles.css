@@ -287,6 +287,8 @@ td .meter { width: 110px; }
 .topic small { display: block; color: var(--muted); }
 .topic .pill { float: right; margin-left: 10px; }
 @media (max-width: 900px) { .theory { grid-template-columns: minmax(0, 1fr); } }
+.choices { flex-direction: column; align-items: stretch; }
+.choices .btn { text-align: left; }
 .annotate { display: block; margin-top: 12px; }
 .annotate textarea { display: block; width: 100%; min-height: 64px; margin-top: 6px; padding: 10px; resize: vertical; font: inherit; font-size: 14px; line-height: 1.5; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; }
 .mynote { display: block; width: 100%; padding: 8px 10px; margin-top: 6px; text-align: left; font: inherit; color: var(--text); background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }

@@ -59,7 +59,7 @@ export function Endgames() {
 }
 
 /** An example line to step through, with a note on the moves that matter. */
-function Demo({ demo }: { demo: EndgameDemo }) {
+export function Demo({ demo }: { demo: EndgameDemo }) {
   const [ply, setPly] = useState(0)
   const sans = demo.moves.map(m => m.san)
   const position = useMemo(() => {

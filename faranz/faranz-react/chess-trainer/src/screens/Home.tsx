@@ -3,6 +3,7 @@ import { Meter } from '../components/ui'
 import { replay } from '../chess'
 import { OPENINGS, SIDE_NAME, chapterName, drillLines, lessonById, openingById, sans, type Opening, type Side } from '../data'
 import { ENDGAME_DRILLS } from '../data/endgames'
+import { JUDGE } from '../data/tactics'
 import { dueLines, lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
 import { streak } from '../srs'
@@ -84,6 +85,18 @@ export function Home() {
             <strong>Calculation trainer</strong>
             <br />
             <span className="note">Learn to see ahead: follow a few moves in your head without the board moving, and solve combinations you have to work out before you play.</span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
+
+        <a className="card row boardcard" href={href('tactics')}>
+          <div className="grow">
+            <strong>Tactics</strong>
+            <br />
+            <span className="note">
+              Learn to read the other side’s move: is it a mistake, a threat, or nothing special? Drills on spotting threats and punishing mistakes, and lessons on the patterns that win material.
+              {Object.keys(s.judged).length > 0 && ` ${JUDGE.filter(p => s.judged[p.id] === 2).length} of ${JUDGE.length} positions judged right.`}
+            </span>
           </div>
           <span className="btn">Open</span>
         </a>

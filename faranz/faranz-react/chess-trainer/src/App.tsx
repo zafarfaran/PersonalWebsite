@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { freePlay, lessonById, openingById } from './data'
 import { endgameById } from './data/endgames'
+import { JUDGE_MODES, tacticById, type JudgeMode } from './data/tactics'
 import { href, useRoute } from './router'
 import { Home, NotFound } from './screens/Home'
 import { Learn } from './screens/Learn'
@@ -17,6 +18,7 @@ import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
 import { Random } from './screens/Random'
+import { Judge, TacticLessonPage, Tactics } from './screens/Tactics'
 import { Traps } from './screens/Traps'
 import { Vision } from './screens/Vision'
 import { BOARDS, PIECE_SETS, getState, updateSettings, useStore, type State } from './store'
@@ -38,6 +40,14 @@ function Screen({ route }: { route: string[] }) {
       return <Random />
     case 'calc':
       return <Calc />
+    case 'tactics':
+      return <Tactics />
+    case 'tactic': {
+      const lesson = tacticById(a ?? '')
+      return lesson ? <TacticLessonPage key={lesson.id} lesson={lesson} /> : <NotFound what="tactics lesson" />
+    }
+    case 'judge':
+      return a && a in JUDGE_MODES ? <Judge key={a} mode={a as JudgeMode} /> : <NotFound what="drill" />
     case 'endgames':
       return <Endgames />
     case 'endgame': {
@@ -133,6 +143,7 @@ export function App() {
           <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
+          <a href={href('tactics')} className={['tactics', 'tactic', 'judge'].includes(route[0]) ? 'on' : ''}>Tactics</a>
           <a href={href('endgames')} className={['endgames', 'endgame'].includes(route[0]) ? 'on' : ''}>Endgames</a>
           <a href={href('games')} className={['games', 'review', 'fix', 'replay', 'again'].includes(route[0]) ? 'on' : ''}>My games</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>

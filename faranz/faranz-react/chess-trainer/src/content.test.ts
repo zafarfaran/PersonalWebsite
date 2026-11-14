@@ -453,6 +453,60 @@ describe('endgames', () => {
   })
 })
 
+import { JUDGE, JUDGE_MODES, TACTICS, TACTIC_GROUPS, passed } from './data/tactics'
+
+describe('tactics', () => {
+  it('has playable example lines', () => {
+    expect(new Set(TACTICS.map(t => t.id)).size).toBe(TACTICS.length)
+    const end = (id: string) => {
+      const d = TACTICS.find(t => t.id === id)!.demo!
+      const c = new Chess(d.fen)
+      d.moves.forEach(m => c.move(m.san))
+      return c
+    }
+    for (const t of TACTICS) {
+      expect(TACTIC_GROUPS, t.id).toContain(t.group)
+      if (!t.demo) continue
+      const c = new Chess(t.demo.fen)
+      for (const m of t.demo.moves) expect(c.move(m.san).san, `${t.id} ${m.san}`).toBe(m.san)
+    }
+    expect(end('back-rank').isCheckmate()).toBe(true)
+    // the examples win what the text says they win
+    const count = (c: Chess, piece: string) => c.fen().split(' ')[0].split(piece).length - 1
+    expect(count(end('loose-pieces'), 'B')).toBe(1)
+    expect(count(end('fork'), 'r')).toBe(1)
+    expect(count(end('pin'), 'n')).toBe(0)
+    expect(count(end('skewer'), 'q')).toBe(0)
+    expect(count(end('discovered-attack'), 'q')).toBe(0)
+    expect(count(end('remove-the-defender'), 'b') + count(end('remove-the-defender'), 'n')).toBe(0)
+  })
+
+  it('has sound positions for judging a move', () => {
+    expect(new Set(JUDGE.map(p => p.id)).size).toBe(JUDGE.length)
+    for (const mode of Object.values(JUDGE_MODES)) expect(JUDGE.filter(p => mode.kinds.includes(p.kind)).length).toBeGreaterThanOrEqual(10)
+    for (const p of JUDGE) {
+      const c = new Chess(p.fen)
+      expect(c.isGameOver(), p.id).toBe(false)
+      const legal = c.moves()
+      expect(legal, p.id).toContain(p.best)
+      // the move that was just played ended on its square, by the side that is not to move
+      expect(c.get(p.to as never)?.color, p.id).toBe(c.turn() === 'w' ? 'b' : 'w')
+      expect(c.get(p.from as never), p.id).toBeFalsy()
+      if (p.kind === 'quiet') continue
+      expect(p.good, p.id).toContain(p.best)
+      for (const san of p.good!) expect(legal, `${p.id} ${san}`).toContain(san)
+      const line = new Chess(p.fen)
+      for (const san of p.line!) expect(line.move(san).san, `${p.id} ${san}`).toBe(san)
+      if (p.kind !== 'threat') continue
+      expect(c.isCheck(), p.id).toBe(false)
+      const free = new Chess(passed(p.fen))
+      for (const san of p.threats!) expect(free.moves(), `${p.id} ${san}`).toContain(san)
+      for (const san of p.threatLine!) expect(free.move(san).san, `${p.id} ${san}`).toBe(san)
+      expect(p.threatLine![0], p.id).toBe(p.threats![0])
+    }
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])
