@@ -53,6 +53,8 @@ export interface Opening {
   firstMoves: string
   /** The colour you play in this opening. */
   side: Side
+  /** A gambit you play yourself: listed in its own section, apart from the main repertoire. */
+  gambit?: boolean
   /** Your finished setup (your pieces only), used by the setup builder. */
   setupFen: string
   setupNote: string

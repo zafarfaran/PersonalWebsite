@@ -1,6 +1,7 @@
 import { Meter, Shell } from '../components/ui'
 import { OPENINGS, drillLines } from '../data'
 import { ENDGAME_DRILLS } from '../data/endgames'
+import { PUZZLES } from '../data/puzzles'
 import { JUDGE } from '../data/tactics'
 import { cardsFor, dueLines, lessonsDone } from '../lib'
 import { href } from '../router'
@@ -26,6 +27,7 @@ export function Progress() {
         <div className="stat"><b>{knownCards} / {allCards.length}</b><span>positions memorised</span></div>
         <div className="stat"><b>{Object.keys(s.endgames).length} / {ENDGAME_DRILLS.length}</b><span>endgame positions solved</span></div>
         <div className="stat"><b>{JUDGE.filter(p => s.judged[p.id] === 2).length} / {JUDGE.length}</b><span>moves judged right</span></div>
+        <div className="stat"><b>{PUZZLES.filter(p => s.puzzles[p.id]).length} / {PUZZLES.length}</b><span>middlegame puzzles solved</span></div>
         <div className="stat"><b>{days}</b><span>{days === 1 ? 'day streak' : 'days streak'}</span></div>
         <span className="spacer" />
         {due.length > 0 && <a className="btn primary" href={href('practise', 'due')}>Review {due.length} {due.length === 1 ? 'line' : 'lines'}</a>}

@@ -3,6 +3,8 @@ import { Meter } from '../components/ui'
 import { replay } from '../chess'
 import { OPENINGS, SIDE_NAME, chapterName, drillLines, lessonById, openingById, sans, type Opening, type Side } from '../data'
 import { ENDGAME_DRILLS } from '../data/endgames'
+import { PUZZLES } from '../data/puzzles'
+import { STRATEGY_TASKS } from '../data/strategy'
 import { JUDGE } from '../data/tactics'
 import { dueLines, lessonsDone, nextLesson } from '../lib'
 import { href } from '../router'
@@ -21,7 +23,7 @@ export function Home() {
         <h1>
           <span className="good">~/chess</span> <span className="accent">$</span> opening-trainer
         </h1>
-        <p>Two openings for White, an answer to every other defence to 1. e4, and three defences for Black, learned one idea at a time: lessons, drills, memory training and practice games.</p>
+        <p>Three openings for White, an answer to every other defence to 1. e4, three defences for Black and a gambit, learned one idea at a time: lessons, drills, memory training and practice games. Then the middlegame: tactics, strategy and positions to play out.</p>
       </div>
 
       <div className="card row">
@@ -50,6 +52,19 @@ export function Home() {
           </span>
         </div>
         <span className="btn primary">Start</span>
+      </a>
+
+      <a className="card row boardcard" href={href('middlegame')}>
+        <div className="grow">
+          <strong>Middlegame trainer</strong>
+          <br />
+          <span className="note">
+            Puzzles from games in your own openings: forks, pins, discovered attacks, trapped pieces and checkmates, each one checked by the computer. Lessons on how to
+            think once the opening is over, and positions to play out from the end of your lines.
+            {Object.keys(s.puzzles).length > 0 && ` ${PUZZLES.filter(p => s.puzzles[p.id]).length} of ${PUZZLES.length} puzzles solved.`}
+          </span>
+        </div>
+        <span className="btn primary">Open</span>
       </a>
 
       <div className="tools">
@@ -101,6 +116,18 @@ export function Home() {
           <span className="btn">Open</span>
         </a>
 
+        <a className="card row boardcard" href={href('strategy')}>
+          <div className="grow">
+            <strong>Strategy</strong>
+            <br />
+            <span className="note">
+              How the game works when nothing is hanging: taking the centre and dismantling it, pawn chains and pawn breaks, weak pawns, outposts, good and bad bishops, time and the initiative. Each lesson has a game to step through and a position to solve.
+              {Object.keys(s.strategy).length > 0 && ` ${Object.keys(s.strategy).length} of ${STRATEGY_TASKS.length} positions solved.`}
+            </span>
+          </div>
+          <span className="btn">Open</span>
+        </a>
+
         <a className="card row boardcard" href={href('endgames')}>
           <div className="grow">
             <strong>Endgames</strong>
@@ -130,17 +157,29 @@ export function Home() {
         <section key={side}>
           <h2 className="sidehead">Play as {SIDE_NAME[side]}</h2>
           <div className="openings">
-            {OPENINGS.filter(o => o.side === side).map(o => (
+            {OPENINGS.filter(o => o.side === side && !o.gambit).map(o => (
               <OpeningCard key={o.id} o={o} />
             ))}
           </div>
         </section>
       ))}
+
+      <section>
+        <h2 className="sidehead">Gambits</h2>
+        <div className="openings">
+          {OPENINGS.filter(o => o.gambit).map(o => (
+            <OpeningCard key={o.id} o={o} />
+          ))}
+        </div>
+        <p className="note more">
+          Surprise weapons, kept apart from your main openings. <a href={href('gambits')}>All gambits: the ones you play and the ones you have to face →</a>
+        </p>
+      </section>
     </main>
   )
 }
 
-function OpeningCard({ o }: { o: Opening }) {
+export function OpeningCard({ o }: { o: Opening }) {
   const s = useStore()
   const done = lessonsDone(o, s)
   const next = nextLesson(o, s)

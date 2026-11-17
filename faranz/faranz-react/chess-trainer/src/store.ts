@@ -84,6 +84,10 @@ export interface State {
   endgames: Record<string, number>
   /** Judging the other side's move: 1 for a position you got wrong the last time, 2 for one you got right. */
   judged: Record<string, number>
+  /** Strategy positions: 1 for one you solved with a hint or the answer, 2 for one you found at the first try. */
+  strategy: Record<string, number>
+  /** Middlegame puzzles: 1 for one you solved with help, 2 for one you solved without. */
+  puzzles: Record<string, number>
   /** Full games, newest first. */
   games: SavedGame[]
   /** Mistakes from your games, keyed by position. */
@@ -110,6 +114,8 @@ const fresh = (): State => ({
   calc: {},
   endgames: {},
   judged: {},
+  strategy: {},
+  puzzles: {},
   games: [],
   fixes: {},
   days: [],
@@ -206,6 +212,14 @@ export function recordEndgame(drill: string, clean: boolean, now = Date.now()) {
 
 export function recordJudge(position: string, right: boolean, now = Date.now()) {
   set({ ...state, judged: { ...state.judged, [position]: right ? 2 : 1 }, days: withToday(state.days, now) })
+}
+
+export function recordStrategy(position: string, clean: boolean, now = Date.now()) {
+  set({ ...state, strategy: { ...state.strategy, [position]: Math.max(state.strategy[position] ?? 0, clean ? 2 : 1) }, days: withToday(state.days, now) })
+}
+
+export function recordPuzzle(puzzle: string, clean: boolean, now = Date.now()) {
+  set({ ...state, puzzles: { ...state.puzzles, [puzzle]: Math.max(state.puzzles[puzzle] ?? 0, clean ? 2 : 1) }, days: withToday(state.days, now) })
 }
 
 const MAX_GAMES = 100

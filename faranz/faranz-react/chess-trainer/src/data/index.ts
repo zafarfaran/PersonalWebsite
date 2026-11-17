@@ -4,12 +4,17 @@ import { e4 } from './e4'
 import { caro } from './caro'
 import { sicilian } from './sicilian'
 import { kid } from './kid'
+import { englund } from './englund'
+import { qg } from './qg'
 import { moveLabel } from '../chess'
 import type { Lesson, Opening, Side } from './types'
 
 export * from './types'
 
-export const OPENINGS: Opening[] = [london, italian, e4, caro, sicilian, kid]
+export const OPENINGS: Opening[] = [london, qg, italian, e4, caro, sicilian, kid, englund]
+
+/** Lessons on gambits your opponents play against you. The Gambits page lists them next to the gambits you play. */
+export const GAMBITS_FACED = ['london-englund', 'italian-nd4', 'e4-latvian', 'e4-elephant', 'e4-stafford', 'caro-bd3-gambit', 'sicilian-morra']
 
 export const openingById = (id: string) => OPENINGS.find(o => o.id === id)
 

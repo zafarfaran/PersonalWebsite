@@ -45,6 +45,18 @@ export const SEE: Record<string, string[]> = {
   'kid-pawn-trap': ['kid-exchange-greed'],
   'kid-four-pawns': ['kid-four-pawns-trap'],
   'kid-samisch': ['sicilian-yugoslav'],
+  'qg-start': ['london-setup'],
+  'qg-pawn-back': ['qg-qga-b5'],
+  'qg-slav': ['london-setup', 'london-bd6'],
+  'qg-slav-bf5': ['london-qb6'],
+  'qg-marshall-qxd5': ['e4-scandi-qa5'],
+  'qg-albin': ['qg-lasker'],
+  'qg-triangle': ['qg-main'],
+  'englund-mate': ['englund-rook', 'london-englund'],
+  'englund-main': ['london-englund'],
+  'englund-qd5': ['englund-qxb7'],
+  'englund-nc3': ['englund-nd5'],
+  'englund-qxf4': ['englund-bf4-nc3'],
 }
 
 export interface Link {

@@ -222,6 +222,7 @@ td .meter { width: 110px; }
 .panel .meter { width: 100%; margin-bottom: 8px; }
 
 /* guide and home sections */
+.note.more { margin-top: 12px; font-size: 13px; }
 .sidehead { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px; }
 .search { display: flex; gap: 8px; margin-bottom: 8px; }
 .search input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 15px; }

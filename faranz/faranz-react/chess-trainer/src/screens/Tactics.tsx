@@ -4,6 +4,7 @@ import { Board, type Arrow, type Highlight } from '../components/Board'
 import { Meter, Shell } from '../components/ui'
 import { legalDests, sanOf, squaresOf, turnOf, type Square } from '../chess'
 import { SIDE_NAME, other } from '../data'
+import { PUZZLE_SETS, type PuzzleSet } from '../data/middlegame'
 import { JUDGE, JUDGE_MODES, TACTICS, TACTIC_GROUPS, passed, type JudgeMode, type JudgePosition, type TacticLesson, type Verdict } from '../data/tactics'
 import { shuffle } from '../lib'
 import { href } from '../router'
@@ -37,6 +38,13 @@ export function Tactics() {
       </p>
       <h2 className="sidehead">Drills</h2>
       <div className="card">
+        <div className="reply">
+          <div className="t">
+            <b>Puzzles by pattern</b>
+            <small>Forks, pins, discovered attacks and checkmates to find for yourself, from games in your own openings. They are on the Middlegame page.</small>
+          </div>
+          <a className="btn" href={href('middlegame')}>Open</a>
+        </div>
         {MODES.map(mode => {
           const all = inMode(mode)
           const n = all.filter(p => judged[p.id] === 2).length
@@ -71,6 +79,8 @@ export function Tactics() {
 /** One lesson: the idea, the rules to remember and an example to step through. */
 export function TacticLessonPage({ lesson }: { lesson: TacticLesson }) {
   const next = TACTICS[TACTICS.indexOf(lesson) + 1]
+  // the set of middlegame puzzles on this pattern, if there is one
+  const puzzles = (Object.keys(PUZZLE_SETS) as PuzzleSet[]).find(set => PUZZLE_SETS[set].lessons.some(([page, id]) => page === 'tactic' && id === lesson.id))
 
   return (
     <Shell back={href('tactics')} backLabel="Tactics" title={lesson.title} mode={lesson.group}>
@@ -84,7 +94,8 @@ export function TacticLessonPage({ lesson }: { lesson: TacticLesson }) {
             <div className="eyebrow">Remember</div>
             <ul className="rules">{lesson.rules.map((r, i) => <li key={i}>{r}</li>)}</ul>
             <div className="actions">
-              <a className="btn primary" href={href('judge', 'mixed')}>Practise: judge the move</a>
+              {puzzles && <a className="btn primary" href={href('puzzles', puzzles)}>Puzzles: {PUZZLE_SETS[puzzles].title.toLowerCase()}</a>}
+              <a className={'btn' + (puzzles ? '' : ' primary')} href={href('judge', 'mixed')}>Practise: judge the move</a>
               {next && <a className="btn" href={href('tactic', next.id)}>Next lesson: {next.title}</a>}
             </div>
           </div>

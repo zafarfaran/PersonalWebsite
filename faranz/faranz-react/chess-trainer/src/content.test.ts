@@ -507,6 +507,114 @@ describe('tactics', () => {
   })
 })
 
+import { GAMBITS_FACED } from './data'
+
+describe('gambits', () => {
+  it('keeps the gambits you play apart from the lessons on the gambits you face', () => {
+    expect(OPENINGS.filter(o => o.gambit).map(o => o.id)).toEqual(['englund'])
+    expect(new Set(GAMBITS_FACED).size).toBe(GAMBITS_FACED.length)
+    for (const id of GAMBITS_FACED) expect(lessonById(id), id).toBeTruthy()
+    for (const id of GAMBITS_FACED) expect(lessonById(id)!.opening.gambit, id).toBeFalsy()
+  })
+
+  it('the Englund lines win what the text says they win', () => {
+    const end = (id: string) => replay(sans(lessonById(id)!.lesson))
+    const count = (c: Chess, piece: string) => c.fen().split(' ')[0].split(piece).length - 1
+    expect(end('englund-mate').isCheckmate()).toBe(true)
+    expect(count(end('englund-rook'), 'R')).toBe(1)
+    expect(count(end('englund-qxf4'), 'B')).toBe(1)
+    expect(count(end('englund-queen'), 'Q')).toBe(0)
+    expect(count(end('englund-bf4-nc3'), 'B')).toBe(1)
+    // the queen on c7 is attacked, and every square she can reach is covered
+    const trapped = end('englund-qxb7')
+    expect(trapped.isAttacked('c7' as never, 'b')).toBe(true)
+    for (const mv of trapped.moves({ verbose: true }).filter(mv => mv.from === 'c7')) expect(trapped.isAttacked(mv.to, 'b'), mv.san).toBe(true)
+    // the mistake loses a knight, the fix trades it
+    expect(count(end('englund-nd5'), 'n')).toBe(1)
+    const fixed = replay(sans(fixLesson(lessonById('englund-nd5')!.lesson)!))
+    expect([count(fixed, 'n'), count(fixed, 'N')]).toEqual([1, 1])
+  })
+})
+
+import { STRATEGY, STRATEGY_GROUPS, STRATEGY_TASKS, taskStart } from './data/strategy'
+
+describe('strategy', () => {
+  const end = (id: string) => {
+    const d = STRATEGY.find(l => l.id === id)!.demo!
+    const c = new Chess(d.fen)
+    d.moves.forEach(m => c.move(m.san))
+    return c
+  }
+  const pawns = (c: Chess, color: string, file: string) => c.board().flat().filter(p => p && p.type === 'p' && p.color === color && p.square[0] === file).length
+
+  it('has playable example lines', () => {
+    expect(new Set(STRATEGY.map(l => l.id)).size).toBe(STRATEGY.length)
+    for (const l of STRATEGY) {
+      expect(STRATEGY_GROUPS, l.id).toContain(l.group)
+      expect(l.id, l.id).not.toBe('drill')
+      for (const id of l.see ?? []) expect(lessonById(id), `${l.id} ${id}`).toBeTruthy()
+      if (!l.demo) continue
+      const c = new Chess(l.demo.fen)
+      for (const m of l.demo.moves) expect(c.move(m.san).san, `${l.id} ${m.san}`).toBe(m.san)
+      // a note belongs to a move that exists
+      expect(l.demo.moves[l.demo.moves.length - 1].note, l.id).toBeTruthy()
+    }
+    for (const group of STRATEGY_GROUPS) expect(STRATEGY.some(l => l.group === group), group).toBe(true)
+  })
+
+  it('the examples show what the text says they show', () => {
+    // the dismantled centre: White's e-pawn is gone and the d-pawn has no neighbours
+    const broken = end('break-the-centre')
+    expect(['c', 'd', 'e'].map(f => pawns(broken, 'w', f))).toEqual([0, 1, 0])
+    expect(broken.get('d5' as never)).toMatchObject({ type: 'n', color: 'b' })
+    // the full centre
+    expect(['d', 'e'].map(f => end('centre').get((f + '4') as never)?.type)).toEqual(['p', 'p'])
+    // the chain is attacked three times and guarded three times
+    const chain = end('pawn-chain')
+    expect([chain.attackers('d4' as never, 'b').length, chain.attackers('d4' as never, 'w').length]).toEqual([3, 3])
+    // an isolated d-pawn for White, a backward d-pawn for Black, a knight on the outpost
+    const isolated = end('isolated-pawn')
+    expect(['c', 'd', 'e'].map(f => pawns(isolated, 'w', f))).toEqual([0, 1, 0])
+    const backward = end('weak-pawns')
+    expect([pawns(backward, 'b', 'c'), backward.get('d6' as never)?.type, backward.get('e5' as never)?.type]).toEqual([0, 'p', 'p'])
+    const outpost = end('outpost')
+    expect(outpost.get('d5' as never)).toMatchObject({ type: 'n', color: 'w' })
+    expect(outpost.attackers('d5' as never, 'b').filter(sq => outpost.get(sq)?.type === 'p')).toEqual([])
+    // the rook cannot be chased off the seventh: the king's step lets it take on f7
+    const rook = end('rooks')
+    rook.move('Kd8')
+    expect(rook.move('Rxf7').captured).toBe('p')
+    expect(end('development').isCheckmate()).toBe(true)
+    // the gambit ends with level material and no queens
+    const danish = end('initiative').fen().split(' ')[0]
+    const count = (piece: string) => danish.split(piece).length - 1
+    expect(['P', 'p', 'Q', 'q', 'N', 'n', 'B', 'b', 'R', 'r'].map(count)).toEqual([5, 5, 0, 0, 2, 2, 1, 1, 2, 2])
+  })
+
+  it('has positions with a move to find', () => {
+    expect(new Set(STRATEGY_TASKS.map(t => t.task.id)).size).toBe(STRATEGY_TASKS.length)
+    expect(STRATEGY_TASKS.length).toBeGreaterThanOrEqual(12)
+    for (const { task } of STRATEGY_TASKS) {
+      expect(!!task.line !== !!task.fen, task.id).toBe(true)
+      const c = new Chess(taskStart(task).fen)
+      expect(c.isGameOver(), task.id).toBe(false)
+      expect(task.good.length, task.id).toBeGreaterThan(0)
+      for (const san of task.good) expect(c.moves(), `${task.id} ${san}`).toContain(san)
+    }
+    // the answers do what the explanation says
+    const after = (id: string, more: string[] = []) => {
+      const task = STRATEGY_TASKS.find(t => t.task.id === id)!.task
+      const c = new Chess(taskStart(task).fen)
+      for (const san of [task.good[0], ...more]) c.move(san)
+      return c
+    }
+    expect(after('outpost-guard', ['Bxf6', 'Nd5']).attackers('c7' as never, 'w')).toContain('d5')
+    expect(after('trade-ahead', ['cxd6']).fen()).not.toMatch(/q/i)
+    expect(after('initiative-liver').isCheck()).toBe(true)
+    expect(after('weak-recapture').board().flat().filter(p => p && p.type === 'p' && p.color === 'b' && p.square[0] === 'f').length).toBe(1)
+  })
+})
+
 describe('board trainer', () => {
   it('knows square colours', () => {
     expect([isDark('a1'), isDark('h1'), isDark('e4'), isDark('d4'), isDark('h8')]).toEqual([true, false, false, true, true])
@@ -520,5 +628,145 @@ describe('board trainer', () => {
     expect(inWords('O-O')).toBe('Castle kingside')
     expect(inWords('Nd5#')).toBe('Knight to d5, checkmate')
     expect(inWords('e8=Q+')).toBe('Pawn to e8, promoting to a queen, with check')
+  })
+})
+
+describe("queen's gambit", () => {
+  const end = (id: string) => replay(sans(lessonById(id)!.lesson))
+  const count = (c: Chess, piece: string) => c.fen().split(' ')[0].split(piece).length - 1
+
+  it('the lines win what the text says they win', () => {
+    // Black holds the pawn and loses a rook, or a knight
+    expect(count(end('qg-pawn-back'), 'r')).toBe(1)
+    expect([count(end('qg-qga-b5'), 'N'), count(end('qg-qga-b5'), 'n')]).toEqual([2, 1])
+    // a piece and a pawn
+    const ne4 = end('qg-early-ne4')
+    expect([count(ne4, 'N') + count(ne4, 'B'), count(ne4, 'n') + count(ne4, 'b')]).toEqual([3, 2])
+    expect([count(ne4, 'P'), count(ne4, 'p')]).toEqual([7, 6])
+    // the traps to avoid cost a knight
+    const elephant = end('qg-elephant')
+    expect([count(elephant, 'N'), count(elephant, 'n'), count(elephant, 'Q'), count(elephant, 'q')]).toEqual([1, 2, 0, 0])
+    expect(count(end('qg-lasker'), 'n')).toBe(3)
+    // doubled f-pawns after the queen trade
+    const spoiled = end('qg-c6-bf5')
+    spoiled.move('gxf6')
+    expect(spoiled.board().flat().filter(p => p && p.type === 'p' && p.color === 'b' && p.square[0] === 'f').length).toBe(2)
+    // isolated d-pawns: yours in the Accepted, Black's in the Tarrasch
+    const files = (c: Chess, color: string) => new Set(c.board().flat().filter(p => p && p.type === 'p' && p.color === color).map(p => p!.square[0]))
+    expect(['c', 'd', 'e'].map(f => files(end('qg-qga'), 'w').has(f))).toEqual([false, true, false])
+    expect(['c', 'd', 'e'].map(f => files(end('qg-tarrasch'), 'b').has(f))).toEqual([false, true, false])
+    // the minority attack leaves a backward pawn on c6, with no black pawn beside it
+    const minority = end('qg-minority')
+    expect(minority.get('c6' as never)).toMatchObject({ type: 'p', color: 'b' })
+    expect(['b', 'd'].map(f => minority.board().flat().some(p => p && p.type === 'p' && p.color === 'b' && p.square[0] === f && +p.square[1] >= 6))).toEqual([false, false])
+  })
+
+  it('reaches the main line by the other move order', () => {
+    const main = replay(sans(lessonById('qg-main')!.lesson), 20)
+    const triangle = end('qg-triangle')
+    triangle.move('Nf8')
+    expect(fenKey(triangle.fen())).toBe(fenKey(main.fen()))
+  })
+
+  it('is told apart from the London by the second move', () => {
+    expect(courseOpening(['d4', 'd5', 'c4', 'e6', 'Nc3'], 'w')?.id).toBe('qg')
+    expect(courseOpening(['d4', 'd5', 'Bf4', 'Nf6'], 'w')?.id).toBe('london')
+  })
+})
+
+import { MIDDLEGAME, MIDDLEGAME_GROUPS, PUZZLE_SETS, THEMES, askFor, lineText, middlegameById, puzzlesIn, type PuzzleSet } from './data/middlegame'
+import { PUZZLES } from './data/puzzles'
+import { strategyById } from './data/strategy'
+import { tacticById } from './data/tactics'
+
+describe('middlegame', () => {
+  const VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }
+  const balance = (c: Chess, side: string) => c.board().flat().reduce((sum, p) => sum + (p ? (p.color === side ? 1 : -1) * VAL[p.type] : 0), 0)
+  const exists = ([page, id]: string[]) =>
+    page === 'tactic' ? !!tacticById(id) : page === 'middlegame' ? !!middlegameById(id) : page === 'strategy' ? !!strategyById(id) : page === 'judge' && id in JUDGE_MODES
+  const sets = Object.keys(PUZZLE_SETS) as PuzzleSet[]
+
+  it('has puzzles with a legal line that wins what it should, from the openings of the course', () => {
+    expect(new Set(PUZZLES.map(p => p.id)).size).toBe(PUZZLES.length)
+    expect(new Set(PUZZLES.map(p => fenKey(p.fen))).size).toBe(PUZZLES.length)
+    for (const p of PUZZLES) {
+      const c = new Chess(p.fen)
+      const you = c.turn()
+      // you have the colour you play in that opening
+      expect(OPENINGS.find(o => o.id === p.opening)?.side, p.id).toBe(you)
+      expect(c.isGameOver(), p.id).toBe(false)
+      // the mistake that was just played ended on its square
+      expect(c.get(p.to as never)?.color, p.id).toBe(you === 'w' ? 'b' : 'w')
+      expect(c.get(p.from as never), p.id).toBeFalsy()
+      expect(p.moves.length % 2, p.id).toBe(1)
+      const before = balance(c, you)
+      p.moves.forEach((san, i) => {
+        for (const other of p.also?.[i / 2] ?? []) {
+          expect(c.moves().map(clean), `${p.id} ${other}`).toContain(other)
+          expect(other, p.id).not.toBe(clean(san))
+        }
+        expect(c.move(san).san, `${p.id} ${san}`).toBe(san)
+      })
+      if (['mate1', 'mate2', 'backrank'].includes(p.theme)) expect(c.isCheckmate(), p.id).toBe(true)
+      else expect(balance(c, you) - before, p.id).toBeGreaterThanOrEqual(2)
+      if (p.theme === 'mate1') expect(p.moves.length, p.id).toBe(1)
+      if (p.theme === 'mate2') expect(p.moves.length, p.id).toBe(3)
+      if (p.theme === 'backrank') expect(p.moves.length, p.id).toBeLessThanOrEqual(3)
+      expect(p.why.length, p.id).toBeGreaterThan(20)
+    }
+  })
+
+  it('puts every puzzle in one set, and has enough in each', () => {
+    for (const set of sets) {
+      expect(puzzlesIn(set).length, set).toBeGreaterThanOrEqual(set === 'mixed' ? 100 : 6)
+      for (const page of PUZZLE_SETS[set].lessons) expect(exists(page), page.join('/')).toBe(true)
+    }
+    for (const p of PUZZLES) expect(sets.filter(set => set !== 'mixed' && PUZZLE_SETS[set].has(p)).length, p.id).toBe(1)
+    for (const theme of Object.values(THEMES)) expect(exists(theme.lesson), theme.lesson.join('/')).toBe(true)
+    // openings and colours are mixed
+    expect(new Set(PUZZLES.map(p => p.opening)).size).toBeGreaterThanOrEqual(6)
+    expect(new Set(PUZZLES.map(p => p.fen.split(' ')[1])).size).toBe(2)
+    expect(askFor(PUZZLES.find(p => p.theme === 'fork')!)).toMatch(/fork/)
+    const mate = PUZZLES.find(p => p.theme === 'backrank')!
+    expect(askFor(mate)).toMatch(mate.moves.length === 1 ? /one move/ : /two moves/)
+  })
+
+  it('has lessons with playable examples that show what they say', () => {
+    expect(new Set(MIDDLEGAME.map(l => l.id)).size).toBe(MIDDLEGAME.length)
+    for (const l of MIDDLEGAME) {
+      expect(MIDDLEGAME_GROUPS, l.id).toContain(l.group)
+      expect(sets, l.id).toContain(l.set)
+      for (const id of l.see ?? []) expect(lessonById(id), `${l.id} ${id}`).toBeTruthy()
+      if (l.link) expect(exists(l.link.to), l.id).toBe(true)
+      if (!l.demo) continue
+      const c = new Chess(l.demo.fen)
+      for (const m of l.demo.moves) expect(c.move(m.san).san, `${l.id} ${m.san}`).toBe(m.san)
+      expect(l.demo.moves[l.demo.moves.length - 1].note, l.id).toBeTruthy()
+    }
+    for (const group of MIDDLEGAME_GROUPS) expect(MIDDLEGAME.some(l => l.group === group), group).toBe(true)
+    const demo = (id: string) => middlegameById(id)!.demo!
+    const end = (id: string) => {
+      const c = new Chess(demo(id).fen)
+      demo(id).moves.forEach(m => c.move(m.san))
+      return c
+    }
+    expect(end('cct').isCheckmate()).toBe(true)
+    expect(end('mates').isCheckmate()).toBe(true)
+    // counting: three attackers, two guards, and White comes out one pawn ahead
+    const d5 = new Chess(demo('count').fen)
+    expect([d5.attackers('d5' as never, 'w').length, d5.attackers('d5' as never, 'b').length]).toEqual([3, 2])
+    expect(balance(end('count'), 'w') - balance(d5, 'w')).toBe(1)
+    // the blunder costs the queen, the trapped bishop goes for a pawn
+    expect(end('safe').fen().split(' ')[0]).not.toContain('Q')
+    const bishop = new Chess(demo('trapped').fen)
+    expect(balance(end('trapped'), 'w') - balance(bishop, 'w')).toBe(2)
+    bishop.move('b4')
+    expect(bishop.moves({ square: 'a5' as never, verbose: true }).map(mv => mv.to)).toEqual(['b4'])
+  })
+
+  it('numbers a line from the move the position is at', () => {
+    expect(lineText('6k1/8/8/8/8/8/8/R5K1 b - - 0 24', ['Kh8', 'Ra8#'])).toBe('24… Kh8 25. Ra8#')
+    expect(lineText('7k/8/8/8/8/8/8/R5K1 w - - 0 25', ['Ra8+', 'Kh7', 'Ra7+'])).toBe('25. Ra8+ Kh7 26. Ra7+')
+    expect(lineText('7k/8/8/8/8/8/8/R5K1 w - - 0 25', [])).toBe('')
   })
 })

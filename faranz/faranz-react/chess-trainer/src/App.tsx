@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { freePlay, lessonById, openingById } from './data'
 import { endgameById } from './data/endgames'
+import { PUZZLE_SETS, middlegameById, type PuzzleSet } from './data/middlegame'
+import { strategyById } from './data/strategy'
 import { JUDGE_MODES, tacticById, type JudgeMode } from './data/tactics'
 import { href, useRoute } from './router'
 import { Home, NotFound } from './screens/Home'
@@ -8,16 +10,19 @@ import { Learn } from './screens/Learn'
 import { LessonMap } from './screens/LessonMap'
 import { Match } from './screens/Match'
 import { Memorise } from './screens/Memorise'
+import { Middlegame, MiddlegameLessonPage, PuzzleDrill } from './screens/Middlegame'
 import { OpeningMap } from './screens/OpeningMap'
 import { Calc } from './screens/Calc'
 import { EndgameDrill, EndgameTopic, Endgames } from './screens/Endgames'
 import { Fix } from './screens/Fix'
 import { Game } from './screens/Game'
+import { Gambits } from './screens/Gambits'
 import { Games, Review } from './screens/Games'
 import { Guide } from './screens/Guide'
 import { Practise } from './screens/Practise'
 import { Progress } from './screens/Progress'
 import { Random } from './screens/Random'
+import { Strategy, StrategyDrill, StrategyLessonPage, StrategyTaskPage } from './screens/Strategy'
 import { Judge, TacticLessonPage, Tactics } from './screens/Tactics'
 import { Traps } from './screens/Traps'
 import { Vision } from './screens/Vision'
@@ -36,6 +41,8 @@ function Screen({ route }: { route: string[] }) {
       return <Guide />
     case 'traps':
       return <Traps />
+    case 'gambits':
+      return <Gambits />
     case 'random':
       return <Random />
     case 'calc':
@@ -48,6 +55,21 @@ function Screen({ route }: { route: string[] }) {
     }
     case 'judge':
       return a && a in JUDGE_MODES ? <Judge key={a} mode={a as JudgeMode} /> : <NotFound what="drill" />
+    case 'middlegame': {
+      if (!a) return <Middlegame />
+      const lesson = middlegameById(a)
+      return lesson ? <MiddlegameLessonPage key={lesson.id} lesson={lesson} /> : <NotFound what="middlegame lesson" />
+    }
+    case 'puzzles':
+      return a && a in PUZZLE_SETS ? <PuzzleDrill key={a} set={a as PuzzleSet} /> : <NotFound what="set of puzzles" />
+    case 'strategy': {
+      if (!a) return <Strategy />
+      if (a === 'drill') return <StrategyDrill />
+      const lesson = strategyById(a)
+      const task = lesson?.tasks.find(t => t.id === b)
+      if (!lesson || (b && !task)) return <NotFound what="strategy lesson" />
+      return task ? <StrategyTaskPage key={task.id} lesson={lesson} task={task} /> : <StrategyLessonPage key={lesson.id} lesson={lesson} />
+    }
     case 'endgames':
       return <Endgames />
     case 'endgame': {
@@ -141,9 +163,12 @@ export function App() {
           <a href={href('guide')} className={route[0] === 'guide' ? 'on' : ''}>Guide</a>
           <a href={href('random')} className={route[0] === 'random' ? 'on' : ''}>Random</a>
           <a href={href('traps')} className={route[0] === 'traps' ? 'on' : ''}>Traps</a>
+          <a href={href('gambits')} className={route[0] === 'gambits' ? 'on' : ''}>Gambits</a>
           <a href={href('board')} className={route[0] === 'board' ? 'on' : ''}>Board trainer</a>
           <a href={href('calc')} className={route[0] === 'calc' ? 'on' : ''}>Calculation</a>
+          <a href={href('middlegame')} className={['middlegame', 'puzzles'].includes(route[0]) ? 'on' : ''}>Middlegame</a>
           <a href={href('tactics')} className={['tactics', 'tactic', 'judge'].includes(route[0]) ? 'on' : ''}>Tactics</a>
+          <a href={href('strategy')} className={route[0] === 'strategy' ? 'on' : ''}>Strategy</a>
           <a href={href('endgames')} className={['endgames', 'endgame'].includes(route[0]) ? 'on' : ''}>Endgames</a>
           <a href={href('games')} className={['games', 'review', 'fix', 'replay', 'again'].includes(route[0]) ? 'on' : ''}>My games</a>
           <a href={href('progress')} className={route[0] === 'progress' ? 'on' : ''}>Progress</a>
