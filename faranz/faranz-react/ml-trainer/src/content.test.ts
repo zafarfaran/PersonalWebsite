@@ -3,7 +3,8 @@ import { closeEnough, parseNumber, tidy } from './components/Quiz'
 import { endPoint, wrap, type Shape } from './components/Pad'
 import { ticks } from './components/Plot'
 import { MODULES } from './content'
-import { LESSON_VIDEOS, MODULE_VIDEOS, watchUrl } from './content/videos'
+import { THEORY } from './content/theory'
+import { LESSON_VIDEOS, MODULE_PLAYLISTS, MODULE_VIDEOS, PLAYLISTS, lessonPlaylists, playlistUrl, watchUrl } from './content/videos'
 import { preview } from './screens/Notebook'
 import { LESSONS, QUESTIONS, deal, drillPool, nextLesson, rightIn } from './lib'
 import { DAY, review, streak, dayStamp } from './srs'
@@ -99,6 +100,39 @@ describe('videos', () => {
     }
     // most lessons have something to watch
     expect(Object.keys(LESSON_VIDEOS).length).toBeGreaterThanOrEqual(LESSONS.length / 2)
+  })
+})
+
+describe('theory', () => {
+  it('every lesson has one, laid out under headings, and none is left over', () => {
+    for (const { lesson } of LESSONS) {
+      const blocks = lesson.theory
+      expect(blocks, lesson.id).toBeDefined()
+      const first = blocks![0]
+      expect(typeof first !== 'string' && 'h' in first, lesson.id).toBe(true)
+      expect(blocks!.filter(b => typeof b !== 'string' && 'h' in b).length, lesson.id).toBeGreaterThanOrEqual(4)
+      expect(blocks!.filter(b => typeof b !== 'string' && 'sub' in b).length, lesson.id).toBeGreaterThanOrEqual(2)
+      const words = blocks!.flatMap(b => (typeof b === 'string' ? [b] : 'list' in b ? b.list : [])).join(' ').split(/\s+/).length
+      expect(words, lesson.id).toBeGreaterThan(400)
+    }
+    for (const id of Object.keys(THEORY)) expect(LESSONS.some(l => l.lesson.id === id), id).toBe(true)
+  })
+})
+
+describe('playlists', () => {
+  it('every module has some, each is used, and each points at lessons that exist', () => {
+    for (const m of MODULES) expect(MODULE_PLAYLISTS[m.id]?.length, m.id).toBeGreaterThan(0)
+    for (const id of Object.keys(MODULE_PLAYLISTS)) expect(MODULES.some(m => m.id === id), id).toBe(true)
+    expect(new Set(PLAYLISTS.map(p => p.list)).size).toBe(PLAYLISTS.length)
+    const used = new Set(Object.values(MODULE_PLAYLISTS).flat())
+    for (const playlist of PLAYLISTS) {
+      expect(used.has(playlist), playlist.title).toBe(true)
+      expect(playlist.list).toMatch(/^PL[A-Za-z0-9_-]{14,32}$/)
+      expect(playlistUrl(playlist)).toBe(`https://www.youtube.com/playlist?list=${playlist.list}`)
+      expect(playlist.about.length, playlist.title).toBeGreaterThan(15)
+      for (const id of playlist.lessons ?? []) expect(LESSONS.some(l => l.lesson.id === id), id).toBe(true)
+    }
+    expect(lessonPlaylists('maths-vectors').map(p => p.title)).toContain('Essence of linear algebra')
   })
 })
 

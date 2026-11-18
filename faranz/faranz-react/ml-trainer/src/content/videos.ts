@@ -221,3 +221,67 @@ export const MODULE_VIDEOS: Record<string, Video[]> = {
 }
 
 export const watchUrl = (video: Video) => `https://www.youtube.com/watch?v=${video.id}`
+
+/** A whole series on YouTube, for going further than one video. */
+export interface Playlist {
+  /** The YouTube playlist id. */
+  list: string
+  title: string
+  by: string
+  /** What the series covers, in a line. */
+  about: string
+  /** The lessons whose idea the series carries on from. */
+  lessons?: string[]
+}
+
+const p = (list: string, title: string, by: string, about: string, lessons?: string[]): Playlist => ({ list, title, by, about, lessons })
+
+const P = {
+  linalg: p('PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab', 'Essence of linear algebra', '3Blue1Brown', 'Vectors, matrices, determinants and eigenvectors, all as pictures.', ['maths-vectors', 'maths-matrices', 'maths-eigen']),
+  calculus: p('PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr', 'Essence of calculus', '3Blue1Brown', 'Derivatives, the chain rule and integrals, built up from scratch.', ['maths-derivatives', 'maths-chain']),
+  strang: p('PLE7DDD91010BC51F8', 'MIT 18.06 Linear Algebra', 'MIT OpenCourseWare', "Gilbert Strang's full university course, for when you want the rigour.", ['maths-matrices', 'maths-eigen']),
+  stat110: p('PL2SOU6wwxB0uwwH80KTQ6ht66KWxbzTIo', 'Statistics 110: Probability', 'Harvard University', "Joe Blitzstein's full probability course.", ['maths-probability', 'maths-distributions']),
+  statsSq: p('PLblh5JKOoLUK0FLuzwntyYI10UQFUhsY9', 'Statistics Fundamentals', 'StatQuest', 'Distributions, sampling, p-values and likelihood in short videos.', ['maths-distributions', 'maths-sampling', 'maths-entropy', 'evaluation-experiments']),
+  mlSq: p('PLblh5JKOoLUICTaGLRoHQDuF_7q2GfuJF', 'Machine Learning', 'StatQuest', 'Every classical model and metric, one short video each.', ['classical-linear', 'classical-logistic', 'classical-overfit', 'classical-regularisation', 'classical-trees', 'classical-ensembles', 'classical-kmeans', 'classical-pca', 'features-categorical', 'evaluation-crossval', 'evaluation-metrics', 'evaluation-curves']),
+  cs229: p('PLoROMvodv4rNyWOpJg_Yh4NSqI4Z4vOYy', 'Stanford CS229: Machine Learning', 'Stanford Online', 'The full Stanford course, with the maths behind each model.', ['classical-linear', 'classical-logistic']),
+  applied: p('PL2UML_KCiC0UlY7iCQDSiGDMovaupqc83', 'Applied Machine Learning (Cornell Tech CS 5787)', 'Volodymyr Kuleshov', 'A full course with a practical bent, in short lectures with code.'),
+  structuring: p('PLkDaE6sCZn6E7jZ9sN_xHwSHOdjUxUW_b', 'Structuring Machine Learning Projects', 'DeepLearningAI', 'Andrew Ng on metrics, train and test splits, and error analysis.'),
+  nn: p('PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi', 'Neural networks', '3Blue1Brown', 'From a single neuron through backpropagation to transformers and attention.', ['maths-gradient', 'neural-neuron', 'neural-backprop', 'transformers-attention', 'transformers-block']),
+  nnSq: p('PLblh5JKOoLUIxGDQs4LFFD--41Vzf-ME1', 'Neural Networks / Deep Learning', 'StatQuest', 'Neural networks worked through number by number.', ['neural-neuron', 'neural-backprop']),
+  zero: p('PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ', 'Neural Networks: Zero to Hero', 'Andrej Karpathy', 'Builds everything in code, from backpropagation up to GPT.', ['neural-forward', 'neural-backprop', 'neural-init', 'neural-lab', 'transformers-tokens', 'transformers-training', 'transformers-lab']),
+  ng: p('PLkDaE6sCZn6Ec-XTbcX1uRg2_u4xOEky0', 'Neural Networks and Deep Learning', 'DeepLearningAI', "Andrew Ng's first deep learning course."),
+  mit: p('PLtBw6njQRU-rwp5__7C0oIVt26ZgjG9NI', 'MIT 6.S191: Introduction to Deep Learning', 'Alexander Amini', "MIT's fast survey of deep learning, updated every year."),
+  fastai: p('PLfYUBJiXbdtSvpQjSnJJ_PmDQB_VyT5iU', 'Practical Deep Learning for Coders', 'Jeremy Howard', 'Code first: train real models from the first lesson.'),
+  loeber: p('PLqnslRFeH2UrcDBWF5mfPGpqQDSta6VK4', 'PyTorch Tutorials: Complete Beginner Course', 'Patrick Loeber', 'PyTorch from tensors to a training loop, a piece at a time.', ['pytorch-tensors', 'pytorch-autograd', 'pytorch-loop']),
+  aladdin: p('PLhhyoLH6IjfxeoooqP9rhU3HJIAVAJ3Vz', 'PyTorch Tutorials', 'Aladdin Persson', 'Many short builds of real architectures in PyTorch.', ['pytorch-cnn']),
+  cs231n: p('PL3FW7Lu3i5JvHM8ljYj-zLfQRF3EO8sYv', 'Convolutional Neural Networks for Visual Recognition (CS231n)', 'Stanford University School of Engineering', 'The classic Stanford course on vision models.', ['pytorch-cnn']),
+  cs224n: p('PLoROMvodv4rOSH4v6133s9LFPRHjEmbmJ', 'Stanford CS224N: Natural Language Processing with Deep Learning', 'Stanford Online', 'Word vectors through attention to transformers.', ['transformers-embeddings']),
+  cs25: p('PLoROMvodv4rNiJRchCzutFw5ItR_Z27CM', 'Stanford CS25: Transformers United', 'Stanford Online', 'Guest lectures on transformers from the people who build them.'),
+  cs336: p('PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_', 'Stanford CS336: Language Modeling from Scratch', 'Stanford Online', 'Building and training a language model end to end.', ['transformers-training']),
+  hf: p('PLo2EIpI_JMQvWfQndUesu0nPBAtZ9gP1o', 'Hugging Face Course', 'Hugging Face', 'Using tokenizers and transformer models from the library.', ['transformers-tokens']),
+  mlopsNg: p('PLkDaE6sCZn6GMoA0wbpJLi3t34Gd8l0aK', 'Machine Learning Engineering for Production (MLOps)', 'DeepLearningAI', 'Andrew Ng on deploying, monitoring and maintaining models.', ['mlops-reproducible', 'mlops-monitoring']),
+  fsdl: p('PL1T8fO7ArWleMMI8KPJ_5D5XSlovTW_Ur', 'Full Stack Deep Learning 2022', 'The Full Stack', 'Everything around the model: tooling, testing, deployment, teams.'),
+  mlsys: p('PLSrTvUm384I9PV10koj_cqit9OfbJXEkq', 'MLSys Seminars', 'Stanford MLSys Seminars', 'Talks from engineers who run machine learning systems in production.'),
+  systems: p('PLCRMIe5FDPsd0gVs500xeOewfySTsmEjf', 'System Design Fundamentals', 'ByteByteGo', 'The general building blocks: caches, queues, databases, load balancers.', ['design-framework']),
+}
+
+/** Whole series worth following alongside a module. */
+export const MODULE_PLAYLISTS: Record<string, Playlist[]> = {
+  maths: [P.linalg, P.calculus, P.statsSq, P.stat110, P.strang],
+  classical: [P.mlSq, P.cs229, P.applied],
+  features: [P.applied, P.mlSq],
+  evaluation: [P.structuring, P.mlSq, P.statsSq],
+  neural: [P.nn, P.zero, P.nnSq, P.ng, P.mit, P.fastai],
+  pytorch: [P.loeber, P.aladdin, P.fastai, P.cs231n],
+  transformers: [P.nn, P.zero, P.cs224n, P.cs25, P.cs336, P.hf],
+  aieng: [P.hf, P.cs25],
+  mlops: [P.mlopsNg, P.fsdl, P.mlsys],
+  design: [P.mlsys, P.systems, P.fsdl],
+}
+
+export const PLAYLISTS = Object.values(P)
+
+/** The series a lesson's idea belongs to. */
+export const lessonPlaylists = (lessonId: string) => PLAYLISTS.filter(list => list.lessons?.includes(lessonId))
+
+export const playlistUrl = (playlist: Playlist) => `https://www.youtube.com/playlist?list=${playlist.list}`

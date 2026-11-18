@@ -3,11 +3,11 @@ import { Blocks, Prose } from '../components/Code'
 import { QuestionCard } from '../components/Quiz'
 import { Meter, Shell } from '../components/ui'
 import { MODULES } from '../content'
-import { LESSON_VIDEOS, MODULE_VIDEOS, watchUrl, type Video } from '../content/videos'
+import { LESSON_VIDEOS, MODULE_PLAYLISTS, MODULE_VIDEOS, lessonPlaylists, playlistUrl, watchUrl, type Playlist, type Video } from '../content/videos'
 import { moduleQuestions, rightIn } from '../lib'
 import { href } from '../router'
 import { markRead, useStore } from '../store'
-import type { Lesson, Module, Question } from '../types'
+import type { Block, Lesson, Module, Question } from '../types'
 import { WIDGETS } from '../widgets'
 import { NotePad } from './Notebook'
 
@@ -32,6 +32,37 @@ function Videos({ videos, title }: { videos: Video[]; title: string }) {
           <small>{video.by} · YouTube ↗</small>
         </a>
       ))}
+    </div>
+  )
+}
+
+/** Links to whole series. They open on YouTube in a new tab. */
+function Playlists({ playlists, title }: { playlists: Playlist[]; title: string }) {
+  return (
+    <div className="card">
+      <div className="eyebrow">{title}</div>
+      {playlists.map(playlist => (
+        <a className="topic video" key={playlist.list} href={playlistUrl(playlist)} target="_blank" rel="noreferrer">
+          <b>☰ {playlist.title}</b>
+          <small>{playlist.by} · {playlist.about} · Playlist on YouTube ↗</small>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+/** The full explanation of a lesson, with its headings listed at the top to jump to. */
+function Theory({ blocks }: { blocks: Block[] }) {
+  const heads = blocks.flatMap((b, i) => (typeof b !== 'string' && 'h' in b ? [{ i, h: b.h }] : []))
+  return (
+    <div className="card theorytext">
+      <div className="eyebrow accent">Theory, from the beginning</div>
+      <div className="contents">
+        {heads.map(({ i, h }) => (
+          <button key={i} className="chip" onClick={() => document.getElementById(`th-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{h}</button>
+        ))}
+      </div>
+      <Blocks blocks={blocks} anchor="th" />
     </div>
   )
 }
@@ -76,6 +107,12 @@ export function ModulePage({ m }: { m: Module }) {
           <Videos videos={MODULE_VIDEOS[m.id]} title="Courses and talks" />
         </>
       )}
+      {MODULE_PLAYLISTS[m.id] && (
+        <>
+          <h2 className="sidehead">Full playlists</h2>
+          <Playlists playlists={MODULE_PLAYLISTS[m.id]} title="Whole series to follow alongside this module" />
+        </>
+      )}
       <div className="actions end">
         <a className="btn primary" href={href('drill', m.id)}>Drill this module</a>
         {MODULES[at + 1] && <a className="btn" href={href('m', MODULES[at + 1].id)}>Next module: {MODULES[at + 1].title}</a>}
@@ -92,10 +129,11 @@ export function LessonPage({ m, lesson }: { m: Module; lesson: Lesson }) {
 
   return (
     <Shell back={href('m', m.id)} backLabel={m.title} title={lesson.title}>
+      {lesson.theory && <Theory blocks={lesson.theory} />}
       <div className={Widget ? 'theory' : 'theory single'}>
         <div className="panel text">
           <div className="card">
-            <div className="eyebrow">The idea</div>
+            <div className="eyebrow">{lesson.theory ? 'In short' : 'The idea'}</div>
             <Blocks blocks={lesson.text} />
           </div>
           <div className="card">
@@ -103,6 +141,7 @@ export function LessonPage({ m, lesson }: { m: Module; lesson: Lesson }) {
             <ul className="rules">{lesson.rules.map((r, i) => <li key={i}><Prose text={r} /></li>)}</ul>
           </div>
           {LESSON_VIDEOS[lesson.id] && <Videos videos={LESSON_VIDEOS[lesson.id]} title="Watch: the same idea, explained by someone else" />}
+          {lessonPlaylists(lesson.id).length > 0 && <Playlists playlists={lessonPlaylists(lesson.id)} title="Go further: the full series" />}
         </div>
         {Widget && (
           <div className="panel sticky">

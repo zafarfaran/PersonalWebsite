@@ -400,3 +400,18 @@ code.inline { background: var(--raised); border-radius: 4px; padding: 1px 5px; f
 
 .topic.video b { font-weight: 500; }
 .topic.video:hover b { color: var(--accent); }
+
+/* lesson theory */
+.theorytext { margin-bottom: 22px; padding: 22px 24px; }
+.theorytext p, .theorytext ul { max-width: 76ch; }
+.theorytext .th { font-size: 18px; color: var(--accent); margin: 28px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.theorytext .contents + .th { margin-top: 6px; }
+.theorytext .tsub { font-size: 14px; font-weight: 600; margin: 18px 0 6px; color: var(--text); }
+.theorytext .tlist { margin: 0 0 12px; }
+.theorytext .snippet { margin: 12px 0 14px; max-width: 76ch; }
+.prints { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 4px; }
+.code.out { color: var(--good); margin: 0; }
+.contents { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.chip { background: var(--raised); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; }
+.chip:hover { border-color: var(--accent); color: var(--text); }
+@media (max-width: 600px) { .theorytext { padding: 16px; } }

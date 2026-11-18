@@ -79,14 +79,20 @@ export interface Design extends Base {
 
 export type Question = Choice | Output | Bug | Numeric | Write | Design
 
-/** A paragraph, or a block of code. In paragraphs `backticks` mark code and **stars** mark bold. */
-export type Block = string | { code: string }
+/**
+ * A piece of lesson text. A plain string is a paragraph, in which `backticks` mark code and **stars** mark bold.
+ * `h` is a heading and `sub` a subheading. `list` is a bullet list. `code` is a block of Python; with `out` it is
+ * shown with what it prints, and that output is checked by `scripts/theory.ts`.
+ */
+export type Block = string | { code: string; out?: string } | { h: string } | { sub: string } | { list: string[] }
 
 export interface Lesson {
   id: string
   title: string
   summary: string
   text: Block[]
+  /** The full explanation from the beginning, under headings. Kept in `src/content/theory/` and attached by the registry. */
+  theory?: Block[]
   rules: string[]
   /** An interactive figure, by its name in the widget registry. */
   widget?: string

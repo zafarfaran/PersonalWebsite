@@ -63,9 +63,29 @@ export function Prose({ text }: { text: string }) {
   )
 }
 
-/** The text of a lesson: paragraphs and code blocks. */
-export function Blocks({ blocks }: { blocks: Block[] }) {
-  return <>{blocks.map((b, i) => (typeof b === 'string' ? <p key={i}><Prose text={b} /></p> : <Code key={i} source={b.code} />))}</>
+/** The text of a lesson: paragraphs, headings, lists and code blocks. A heading gets the id `<anchor>-<index>`. */
+export function Blocks({ blocks, anchor }: { blocks: Block[]; anchor?: string }) {
+  return (
+    <>
+      {blocks.map((b, i) => {
+        if (typeof b === 'string') return <p key={i}><Prose text={b} /></p>
+        if ('h' in b) return <h3 key={i} className="th" id={anchor && `${anchor}-${i}`}><Prose text={b.h} /></h3>
+        if ('sub' in b) return <h4 key={i} className="tsub"><Prose text={b.sub} /></h4>
+        if ('list' in b) return <ul key={i} className="rules tlist">{b.list.map((item, k) => <li key={k}><Prose text={item} /></li>)}</ul>
+        return (
+          <div key={i} className="snippet">
+            <Code source={b.code} />
+            {b.out !== undefined && (
+              <>
+                <div className="prints">Prints</div>
+                <pre className="code out">{b.out}</pre>
+              </>
+            )}
+          </div>
+        )
+      })}
+    </>
+  )
 }
 
 /** The chart that goes with a question: one or more lines over steps. */

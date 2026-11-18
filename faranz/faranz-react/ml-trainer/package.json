@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "theory": "vite-node scripts/theory.ts",
     "verify": "vite-node scripts/dump.ts && python scripts/verify.py",
     "build:site": "tsc --noEmit && vite build --outDir ../public/ml --emptyOutDir"
   },
