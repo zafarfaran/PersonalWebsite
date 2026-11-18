@@ -1,6 +1,10 @@
 # The course
 
-Day trading options, from zero. Ten modules, taken in order. Each module has 7 teaching lessons and a lab (8 lessons),
+Day trading options, from zero, with order flow, volume profile and a quant and algorithmic trading track. Fourteen
+modules, taken in this order: markets, charts, orderflow, profile, options, pricing, volatility, strategies, risk,
+daytrading, backtest, quant, algo, business. The ten numbered sections below were written first and are finished
+(read their files in `src/content/` to see exactly what they taught). The four added modules are described at the
+end, each with its place in the order. Each module has 7 teaching lessons and a lab (8 lessons),
 each lesson 9 to 12 questions. The lesson lists below are the scope of each module: keep to your own module's
 subjects so that modules do not repeat each other, and rely on what earlier modules taught (with a one-line reminder).
 You may rename, merge or reorder lessons within your module where it teaches better, but cover everything listed.
@@ -138,3 +142,75 @@ Why people who know all of the above still lose, and how to run trading like a s
   professional), record keeping, what return is realistic and what the studies of day traders found
 - Lab: a journal analyser in Python (from a list of trades: expectancy by setup, by time of day, rule breaks and
   what they cost, the longest losing streak)
+
+## `orderflow` — Order flow (comes after `charts`, before `profile`)
+Who is buying and selling right now, read from the trades themselves. Builds on the order book, the spread and
+market and limit orders from `markets`, and on VWAP and levels from `charts`. Honest throughout: order flow is
+context, not prediction, and any rule built on it needs testing.
+- From the book to the tape: time and sales, the aggressor, why a trade prints at the bid or at the ask, market
+  orders consuming resting limit orders
+- Delta and cumulative delta: buy volume minus sell volume in a bar, cumulative volume delta through the day,
+  divergence between delta and price
+- Footprint charts: bid and ask volume at each price inside a bar, diagonal imbalances, stacked imbalances,
+  unfinished auctions
+- Depth of market and liquidity: resting size, pulling and stacking, icebergs, why displayed depth misleads,
+  spoofing (what it is, and that it is illegal)
+- Absorption and exhaustion: heavy aggression with no progress in price, trapped traders, climactic volume
+- Where order flow can be read and its limits: index futures (ES, NQ) as the place index order flow is seen, tick
+  data and what it costs, classifying trades when the side is not given (tick rule, quote rule), "unusual options
+  activity" and why a large option print does not tell you the direction of the bet
+- Order flow at a level: using it to confirm or reject a trade at support, resistance or VWAP; writing it as rules;
+  how it fails
+- Lab: an order flow toolkit in Python (from a list of trades with the quote: classify the aggressor, bar delta,
+  cumulative delta, a footprint, imbalance detection)
+
+## `profile` — Volume profile and auction market theory (comes after `orderflow`, before `options`)
+Where the volume traded, not when. Price as an auction looking for value.
+- Volume at price: building a profile from trades or bars, how it differs from the volume bars under a chart
+- Point of control and value area: the POC, the 70% value area, value area high and low, how they are computed
+- High and low volume nodes: acceptance and rejection, why price moves fast through thin areas and slows in
+  thick ones
+- Auction market theory: balance and imbalance, price against value, initiative and responsive activity
+- Market profile (TPO): letters by half hour, the initial balance, day types (trend, normal, double
+  distribution), profile shapes (P, b, D) and what they suggest
+- Which profile: session, composite and anchored profiles; yesterday's value area, opening inside or outside
+  value, naked POCs; popular rules of thumb (such as the "80% rule") as claims to test, not facts
+- Trading with the profile: levels as context, combining it with VWAP and order flow, a setup written as rules,
+  how it fails
+- Lab: a volume profile in Python (histogram of volume by price from bars or trades, POC, the value area
+  algorithm, high and low volume nodes)
+
+## `quant` — Quantitative trading: the statistics of an edge (comes after `backtest`, before `algo`)
+Treating trading as research. Builds on `backtest` (statistics of a trade list, sample size, overfitting,
+out-of-sample) and on realised volatility from `volatility`. Do not re-teach those: extend them.
+- Returns and their distribution: simple and log returns, compounding, fat tails, why the normal curve
+  understates big days
+- Signal or noise: the t-statistic of a mean return, p-values, testing many ideas and data snooping
+- Time series behaviour: random walks, autocorrelation, stationarity, momentum against mean reversion
+- Measuring a strategy: Sharpe and Sortino ratios, annualising, drawdown, why a high Sharpe from a short sample
+  means little
+- Building a signal: features, z-scores, ranking, the information coefficient, combining weak signals, decay
+- Pairs and mean reversion: the spread of two related series, cointegration in plain words, z-score entries
+  and exits, how pairs break
+- From signal to portfolio: correlation, diversification, volatility targeting, costs and turnover, capacity
+- Lab: researching a mean reversion signal in NumPy on made-up series (signal, positions, returns net of costs,
+  Sharpe, t-statistic, in-sample against out-of-sample)
+
+## `algo` — Algorithmic trading systems (comes after `quant`, before `business`)
+Turning rules into a program that trades, and keeping it from hurting you.
+- What an algorithm is and the kinds there are: execution, market making, statistical arbitrage, trend and
+  rule-based systems; latency, and where an individual can and cannot compete
+- Anatomy of a trading system: data feed, strategy, risk checks, execution, record keeping; the event loop;
+  event-driven against vectorised code
+- Market data and broker APIs: bars and ticks, REST and streaming, paper trading accounts, rate limits, clock
+  and time zone bugs (name a real broker's API only after checking with a web search what it offers today)
+- Orders in code: the life of an order (new, partially filled, filled, cancelled, rejected), idempotency,
+  reconciling positions with the broker
+- Execution algorithms: slicing an order, TWAP and VWAP, participation rate, implementation shortfall
+- Risk controls and kill switches: maximum position and order size, loss limits, price sanity checks, what
+  happened at Knight Capital in 2012 (look it up and state it accurately)
+- From backtest to live, and automating options: paper, then small size; monitoring, logging and alerts; why
+  live results differ from the backtest; choosing a contract by delta in code, sending a spread as one order,
+  always with limit orders
+- Lab: an event-driven trading engine in Python (bars in, a strategy, orders, simulated fills, position and P&L,
+  risk checks that block an order)

@@ -1,6 +1,8 @@
 import type { ModuleVideos, Playlist, Video } from './types'
 import { marketsVideos } from './markets'
 import { chartsVideos } from './charts'
+import { orderflowVideos } from './orderflow'
+import { profileVideos } from './profile'
 import { optionsVideos } from './options'
 import { pricingVideos } from './pricing'
 import { volatilityVideos } from './volatility'
@@ -8,11 +10,13 @@ import { strategiesVideos } from './strategies'
 import { riskVideos } from './risk'
 import { daytradingVideos } from './daytrading'
 import { backtestVideos } from './backtest'
+import { quantVideos } from './quant'
+import { algoVideos } from './algo'
 import { businessVideos } from './business'
 
 export type { Playlist, Video } from './types'
 
-export const BY_MODULE: Record<string, ModuleVideos> = { markets: marketsVideos, charts: chartsVideos, options: optionsVideos, pricing: pricingVideos, volatility: volatilityVideos, strategies: strategiesVideos, risk: riskVideos, daytrading: daytradingVideos, backtest: backtestVideos, business: businessVideos }
+export const BY_MODULE: Record<string, ModuleVideos> = { markets: marketsVideos, charts: chartsVideos, orderflow: orderflowVideos, profile: profileVideos, options: optionsVideos, pricing: pricingVideos, volatility: volatilityVideos, strategies: strategiesVideos, risk: riskVideos, daytrading: daytradingVideos, backtest: backtestVideos, quant: quantVideos, algo: algoVideos, business: businessVideos }
 const some = <T,>(entries: [string, T[]][]) => Object.fromEntries(entries.filter(([, list]) => list.length > 0))
 
 /** Videos on the idea of one lesson, by lesson id. */

@@ -1,6 +1,6 @@
 // One-off: creates the registries and an empty file for every module that has none yet.
 import fs from 'node:fs'
-const mods = ['markets', 'charts', 'options', 'pricing', 'volatility', 'strategies', 'risk', 'daytrading', 'backtest', 'business']
+const mods = ['markets', 'charts', 'orderflow', 'profile', 'options', 'pricing', 'volatility', 'strategies', 'risk', 'daytrading', 'backtest', 'quant', 'algo', 'business']
 for (const m of mods) {
   const make = (path, body) => fs.existsSync(path) || fs.writeFileSync(path, body)
   make(`src/content/${m}.ts`, `import type { Module } from '../types'\n\nexport const ${m}: Module = { id: '${m}', title: '${m}', summary: '', lessons: [] }\n`)

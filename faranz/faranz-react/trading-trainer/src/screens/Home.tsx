@@ -20,8 +20,8 @@ export function Home() {
           <span className="good">~/trading</span> <span className="accent">$</span> trainer
         </h1>
         <p>
-          Day trading options from the first share to a tested plan, one idea at a time: how markets work, reading price, options and the Greeks, volatility, spreads, risk
-          and the intraday playbook. Every lesson has a page to read, a figure to play with and questions to answer: trades to judge, numbers to work out, code to read and
+          Day trading options from the first share to a tested plan, one idea at a time: how markets work, reading price, order flow and volume profile, options and the Greeks,
+          volatility, spreads, risk and the intraday playbook, then the quant side: testing an edge with statistics and building an algorithmic trading system. Every lesson has a page to read, a figure to play with and questions to answer: trades to judge, numbers to work out, code to read and
           write, and plans to design. It teaches how trading works. It is not financial advice.
         </p>
       </div>
