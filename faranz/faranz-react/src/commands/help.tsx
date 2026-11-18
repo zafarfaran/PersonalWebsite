@@ -15,6 +15,7 @@ const portfolioCommands = [
   ['chess', 'Open my chess opening trainer'],
   ['math', 'Open my mental math trainer'],
   ['ml', 'Open my machine learning trainer'],
+  ['trading', 'Open my options day trading trainer'],
   ['theme', 'Switch terminal color theme'],
 ];
 

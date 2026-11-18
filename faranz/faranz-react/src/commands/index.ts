@@ -8,6 +8,7 @@ import './contact';
 import './chess';
 import './math';
 import './ml';
+import './trading';
 import './theme';
 import './filesystem';
 import './nano';
