@@ -15,7 +15,8 @@ Everything in `AUTHORING.md` under "Honesty and safety" applies to the theory to
 A complete beginner to markets. They can write basic Python (variables, loops, functions, lists) and remember
 school arithmetic. Assume nothing else: no finance vocabulary, no statistics, no experience of a broker or a chart.
 Later modules may rely on what earlier modules in the course taught (the order is markets, charts, orderflow, profile,
-options, pricing, volatility, strategies, risk, daytrading, backtest, quant, algo, business; `CURRICULUM.md` says what each covers), but give a
+options, pricing, volatility, strategies, risk, daytrading, backtest, business, then the quant track: quant, qdata,
+qseries, qalpha, statarb, portfolio, qoptions, qml, algo, engine, execution, agentic; `CURRICULUM.md` says what each covers), but give a
 one-line reminder when you use an earlier idea rather than assuming it stuck.
 
 The reader should be able to read the theory top to bottom, with no other source, and then answer every question

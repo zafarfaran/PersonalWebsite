@@ -1,5 +1,5 @@
 import { Meter, Shell } from '../components/ui'
-import { MODULES } from '../content'
+import { TRACKS } from '../content'
 import { QUESTIONS, dueQuestions, moduleQuestions, nextLesson, rightIn } from '../lib'
 import { href } from '../router'
 import { streak } from '../srs'
@@ -21,7 +21,7 @@ export function Home() {
         </h1>
         <p>
           Day trading options from the first share to a tested plan, one idea at a time: how markets work, reading price, order flow and volume profile, options and the Greeks,
-          volatility, spreads, risk and the intraday playbook, then the quant side: testing an edge with statistics and building an algorithmic trading system. Every lesson has a page to read, a figure to play with and questions to answer: trades to judge, numbers to work out, code to read and
+          volatility, spreads, risk and the intraday playbook, then a second track on quant and algorithmic trading: data, statistics, signals, portfolios, options maths, machine learning, trading systems, execution and agents built on language models. Every lesson has a page to read, a figure to play with and questions to answer: trades to judge, numbers to work out, code to read and
           write, and plans to design. It teaches how trading works. It is not financial advice.
         </p>
       </div>
@@ -41,10 +41,15 @@ export function Home() {
         {weak > 0 && <a className="btn" href={href('drill', 'weak')}>Fix {weak} missed</a>}
       </div>
 
-      <h2 className="sidehead">The course</h2>
-      <div className="modules">
-        {MODULES.map((m, i) => <ModuleCard key={m.id} m={m} n={i + 1} />)}
-      </div>
+      {TRACKS.map(t => (
+        <section key={t.id}>
+          <h2 className="sidehead">{t.title}</h2>
+          <p className="note">{t.summary}</p>
+          <div className="modules">
+            {t.modules.map((m, i) => <ModuleCard key={m.id} m={m} n={i + 1} />)}
+          </div>
+        </section>
+      ))}
     </main>
   )
 }

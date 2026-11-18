@@ -10,9 +10,19 @@ import { strategiesTheory } from './strategies'
 import { riskTheory } from './risk'
 import { daytradingTheory } from './daytrading'
 import { backtestTheory } from './backtest'
-import { quantTheory } from './quant'
-import { algoTheory } from './algo'
 import { businessTheory } from './business'
+import { quantTheory } from './quant'
+import { qdataTheory } from './qdata'
+import { qseriesTheory } from './qseries'
+import { qalphaTheory } from './qalpha'
+import { statarbTheory } from './statarb'
+import { portfolioTheory } from './portfolio'
+import { qoptionsTheory } from './qoptions'
+import { qmlTheory } from './qml'
+import { algoTheory } from './algo'
+import { engineTheory } from './engine'
+import { executionTheory } from './execution'
+import { agenticTheory } from './agentic'
 
 /** The full theory of every lesson, keyed by lesson id. */
-export const THEORY: Record<string, Block[]> = { ...marketsTheory, ...chartsTheory, ...orderflowTheory, ...profileTheory, ...optionsTheory, ...pricingTheory, ...volatilityTheory, ...strategiesTheory, ...riskTheory, ...daytradingTheory, ...backtestTheory, ...quantTheory, ...algoTheory, ...businessTheory }
+export const THEORY: Record<string, Block[]> = { ...marketsTheory, ...chartsTheory, ...orderflowTheory, ...profileTheory, ...optionsTheory, ...pricingTheory, ...volatilityTheory, ...strategiesTheory, ...riskTheory, ...daytradingTheory, ...backtestTheory, ...businessTheory, ...quantTheory, ...qdataTheory, ...qseriesTheory, ...qalphaTheory, ...statarbTheory, ...portfolioTheory, ...qoptionsTheory, ...qmlTheory, ...algoTheory, ...engineTheory, ...executionTheory, ...agenticTheory }

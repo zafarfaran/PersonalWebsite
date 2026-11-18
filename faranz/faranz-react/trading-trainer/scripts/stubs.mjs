@@ -1,6 +1,20 @@
 // One-off: creates the registries and an empty file for every module that has none yet.
 import fs from 'node:fs'
-const mods = ['markets', 'charts', 'orderflow', 'profile', 'options', 'pricing', 'volatility', 'strategies', 'risk', 'daytrading', 'backtest', 'quant', 'algo', 'business']
+const tracks = [
+  {
+    id: 'options',
+    title: 'Day trading options',
+    summary: 'From the first share to a tested trading plan: markets, charts, order flow, volume profile, options, risk and the intraday playbook.',
+    mods: ['markets', 'charts', 'orderflow', 'profile', 'options', 'pricing', 'volatility', 'strategies', 'risk', 'daytrading', 'backtest', 'business'],
+  },
+  {
+    id: 'quant',
+    title: 'Quant and algorithmic trading',
+    summary: 'Trading as research and as software: data, statistics, signals, portfolios, options maths and machine learning, then the systems that trade them, down to agents built on language models.',
+    mods: ['quant', 'qdata', 'qseries', 'qalpha', 'statarb', 'portfolio', 'qoptions', 'qml', 'algo', 'engine', 'execution', 'agentic'],
+  },
+]
+const mods = tracks.flatMap(t => t.mods)
 for (const m of mods) {
   const make = (path, body) => fs.existsSync(path) || fs.writeFileSync(path, body)
   make(`src/content/${m}.ts`, `import type { Module } from '../types'\n\nexport const ${m}: Module = { id: '${m}', title: '${m}', summary: '', lessons: [] }\n`)
@@ -11,7 +25,7 @@ for (const m of mods) {
 const imports = (suffix, from) => mods.map(m => `import { ${m}${suffix} } from '${from}${m}'`).join('\n')
 fs.writeFileSync(
   'src/content/index.ts',
-  `import type { Module } from '../types'\n${imports('', './')}\nimport { THEORY } from './theory'\n\n/** The course, in the order it is meant to be taken. A module with no lessons yet is left out. */\nexport const MODULES: Module[] = [${mods.join(', ')}]\n  .filter(m => m.lessons.length > 0)\n  .map(m => ({ ...m, lessons: m.lessons.map(l => ({ ...l, theory: THEORY[l.id] })) }))\n`,
+  `import type { Module } from '../types'\n${imports('', './')}\nimport { THEORY } from './theory'\n\n/** Every module, in the order it is meant to be taken. A module with no lessons yet is left out. */\nexport const MODULES: Module[] = [${mods.join(', ')}]\n  .filter(m => m.lessons.length > 0)\n  .map(m => ({ ...m, lessons: m.lessons.map(l => ({ ...l, theory: THEORY[l.id] })) }))\n\nexport interface Track {\n  id: string\n  title: string\n  summary: string\n  modules: Module[]\n}\n\nconst track = (id: string, title: string, summary: string, ids: string[]): Track => ({ id, title, summary, modules: MODULES.filter(m => ids.includes(m.id)) })\n\n/** The course is two tracks. A track with no modules yet is left out. */\nexport const TRACKS: Track[] = [\n${tracks.map(t => `  track(${JSON.stringify(t.id)}, ${JSON.stringify(t.title)}, ${JSON.stringify(t.summary)}, ${JSON.stringify(t.mods)}),`).join('\n')}\n].filter(t => t.modules.length > 0)\n`,
 )
 fs.writeFileSync(
   'src/widgets/index.ts',

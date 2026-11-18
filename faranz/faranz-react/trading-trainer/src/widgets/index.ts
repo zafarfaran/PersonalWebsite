@@ -10,9 +10,19 @@ import { strategiesWidgets } from './strategies'
 import { riskWidgets } from './risk'
 import { daytradingWidgets } from './daytrading'
 import { backtestWidgets } from './backtest'
-import { quantWidgets } from './quant'
-import { algoWidgets } from './algo'
 import { businessWidgets } from './business'
+import { quantWidgets } from './quant'
+import { qdataWidgets } from './qdata'
+import { qseriesWidgets } from './qseries'
+import { qalphaWidgets } from './qalpha'
+import { statarbWidgets } from './statarb'
+import { portfolioWidgets } from './portfolio'
+import { qoptionsWidgets } from './qoptions'
+import { qmlWidgets } from './qml'
+import { algoWidgets } from './algo'
+import { engineWidgets } from './engine'
+import { executionWidgets } from './execution'
+import { agenticWidgets } from './agentic'
 
 /** Every interactive figure, by the name a lesson refers to it with. Names start with the module: "options-payoff". */
 export const WIDGETS: Record<string, ComponentType> = {
@@ -27,7 +37,17 @@ export const WIDGETS: Record<string, ComponentType> = {
   ...riskWidgets,
   ...daytradingWidgets,
   ...backtestWidgets,
-  ...quantWidgets,
-  ...algoWidgets,
   ...businessWidgets,
+  ...quantWidgets,
+  ...qdataWidgets,
+  ...qseriesWidgets,
+  ...qalphaWidgets,
+  ...statarbWidgets,
+  ...portfolioWidgets,
+  ...qoptionsWidgets,
+  ...qmlWidgets,
+  ...algoWidgets,
+  ...engineWidgets,
+  ...executionWidgets,
+  ...agenticWidgets,
 }

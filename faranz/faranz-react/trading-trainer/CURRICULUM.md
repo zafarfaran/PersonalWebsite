@@ -214,3 +214,151 @@ Turning rules into a program that trades, and keeping it from hurting you.
   always with limit orders
 - Lab: an event-driven trading engine in Python (bars in, a strategy, orders, simulated fills, position and P&L,
   risk checks that block an order)
+
+# The quant and algorithmic trading track
+
+The course is now two tracks, shown separately on the home page. The first is day trading options: markets, charts,
+orderflow, profile, options, pricing, volatility, strategies, risk, daytrading, backtest, business. The second is
+this one, taken in the order quant, qdata, qseries, qalpha, statarb, portfolio, qoptions, qml, algo, engine,
+execution, agentic. `quant` and `algo` are already written and stay as the survey modules that open each half:
+read `src/content/quant.ts` and `src/content/algo.ts` to see what they taught, then go deeper, do not repeat them.
+The reader of this track has finished the first track, or at least `backtest`, and can read Python.
+
+Rules for the whole track:
+- Code runs in the browser with the standard library and NumPy only. No pandas, SciPy, scikit-learn, statsmodels,
+  network calls or files. Where the real world uses one of those, say so in the theory, name the function a reader
+  would call, and build the small version in NumPy so they see what it does.
+- All data is made up or generated with a fixed seed. Say so.
+- Honest throughout: most published signals fade, costs eat small edges, a backtest is an upper bound. No claims
+  that a method makes money.
+- Eight lessons per module, the last one a lab, as in the first track.
+
+## `qdata` — Market data in Python (after `quant`)
+The raw material, and the mistakes that poison everything built on it.
+- Bars, ticks and quotes as arrays: OHLCV, timestamps, time zones and sessions
+- Corporate actions: splits, dividends, adjusted against unadjusted prices, total return
+- Cleaning: missing bars, bad ticks, outliers, stale prices, aligning two series on time
+- Resampling and bar types: time bars, volume bars, dollar bars and why they differ
+- Bias in data: survivorship, look-ahead, point-in-time data, restated fundamentals
+- Futures and options data: continuous contracts and roll methods, option chains, what a chain snapshot hides
+- Where data comes from and what it costs: free end-of-day sources, paid tick data, vendors (check with a web
+  search what each offers today before naming one)
+- Lab: a cleaning pipeline in NumPy (adjust for a split, fill gaps, flag bad ticks, resample, compute returns)
+
+## `qseries` — Time series and volatility models (after `qdata`)
+- Autocorrelation and partial autocorrelation, the correlogram, the Ljung-Box idea
+- AR, MA and ARMA models in plain words; fitting an AR(1) by least squares
+- Stationarity and unit roots: differencing, the Dickey-Fuller test idea, why regressions on prices lie
+- Volatility clustering: squared returns, EWMA volatility, the RiskMetrics decay
+- GARCH(1,1): the recursion, persistence, long-run variance, forecasting volatility
+- Realised volatility from intraday data, range estimators (Parkinson, Garman-Klass), the volatility signature
+- Regimes: rolling statistics, structural breaks, a two-state view of calm and stressed markets
+- Lab: fit an AR(1) and an EWMA/GARCH volatility forecast in NumPy and score the forecast out of sample
+
+## `qalpha` — Alpha research and factors (after `qseries`)
+- What alpha is: return left after exposure to the market; beta, regression of returns on the market
+- The classic factors: value, momentum, size, quality, low volatility, carry; what the evidence says and how it
+  has faded
+- Cross-sectional against time-series signals; ranking, quantile portfolios, long-short spreads
+- Cleaning a signal: winsorising, z-scoring, neutralising to market and sector
+- Judging a signal: information coefficient, IC decay, turnover, hit rate, breadth and the fundamental law
+- Combining signals: correlation between alphas, equal weight against fitted weights, overfitting a blend
+- The research process: hypotheses first, a holdout you touch once, multiple testing and the deflated Sharpe idea,
+  why most published factors do not survive
+- Lab: build and test a cross-sectional momentum signal on a made-up universe (rank, quantiles, IC, turnover,
+  net of costs)
+
+## `statarb` — Statistical arbitrage and pairs (after `qalpha`)
+- The idea: relative value, market neutral, many small bets; a short history and why it got crowded
+- Finding pairs: correlation against cointegration, the distance method
+- Cointegration properly: the Engle-Granger two steps, the hedge ratio by regression, testing the residual
+- The spread as a mean reverting process: Ornstein-Uhlenbeck in plain words, half-life from an AR(1)
+- Trading rules: z-score entry, exit and stop, time stops, sizing the two legs
+- Baskets: index arbitrage, ETF against its holdings, residual reversal after removing the market
+- How it breaks: August 2007, regime change, borrow costs and short squeezes, a pair that never comes back
+- Lab: a pairs backtest in NumPy (hedge ratio, spread, half-life, z-score rules, P&L net of costs, in and out of
+  sample)
+
+## `portfolio` — Portfolio construction and risk (after `statarb`)
+- Mean and variance of a portfolio; the covariance matrix; diversification in numbers
+- Mean-variance optimisation, the efficient frontier, why the optimiser amplifies estimation error
+- Taming it: shrinkage, constraints, equal weight and inverse volatility as hard-to-beat baselines
+- Risk parity and volatility targeting; leverage to hit a risk budget and what it costs
+- Bet sizing: the Kelly criterion, fractional Kelly, why full Kelly is too much
+- Measuring risk: value at risk, expected shortfall, stress tests, drawdown; what each misses
+- Risk models and exposure: factor exposures, beta hedging, concentration, correlation going to one in a crisis
+- Lab: build portfolios in NumPy from made-up returns (minimum variance, risk parity, volatility target) and
+  compare them out of sample
+
+## `qoptions` — Options for quants (after `portfolio`)
+Builds on `pricing` and `volatility` from the first track: do not re-teach the Greeks or implied volatility.
+- Black-Scholes as an argument: hedging removes the drift, risk-neutral pricing in plain words
+- Binomial trees: building one, early exercise, American options
+- Monte Carlo pricing: simulating geometric Brownian motion, standard error, antithetic and control variates
+- Implied volatility numerically: bisection and Newton's method, when they fail
+- The volatility surface: skew and term structure, why Black-Scholes is wrong in a useful way, no-arbitrage
+  shape in plain words
+- Delta hedging in discrete time: hedging error, gamma against theta, realised against implied P&L
+- Volatility as an asset: the variance risk premium, selling volatility and its tail, the VIX in outline
+- Lab: a pricer in NumPy (Black-Scholes, a binomial tree, Monte Carlo with a confidence interval, an implied
+  volatility solver, a delta hedging simulation)
+
+## `qml` — Machine learning for trading (after `qoptions`)
+Models written in NumPy so the reader sees them work; name the library they would use in practice.
+- Why finance is hard for machine learning: low signal to noise, non-stationarity, few independent samples
+- Framing the problem: features, labels, horizons, classification against regression, look-ahead in labels
+- Linear models first: least squares, ridge and lasso, why regularisation matters more here than anywhere
+- Trees and ensembles in plain words: a decision stump, bagging, boosting, what they buy and cost
+- Validation for time series: walk-forward, purging and embargo, why shuffled k-fold leaks
+- Judging a model as a strategy: from prediction to position, accuracy against profit, feature importance
+- Failure modes: overfitting, regime change, crowding, backtest overfitting with many models; a short honest
+  note on deep learning and reinforcement learning in trading
+- Lab: a ridge regression return forecaster in NumPy with walk-forward validation, turned into positions and
+  scored net of costs against a naive baseline
+
+## `engine` — Building a backtest and trading engine (after `algo`)
+Builds on `algo` (system anatomy, order life cycle, risk checks) and `backtest`. This is the software design.
+- Vectorised against event-driven engines: what each can and cannot model
+- The event queue: market, signal, order and fill events; the main loop
+- Data handlers: feeding bars one at a time, never showing the future, multiple symbols
+- Portfolio and accounting: positions, cash, average price, realised and unrealised P&L, marking to market
+- Simulating fills: next-bar fills, slippage and spread models, partial fills, limit order logic, commissions
+- One code path for backtest, paper and live: interfaces for data and broker, why it matters
+- Testing and reproducibility: unit tests for accounting, seeds, configuration, logging every decision; the open
+  source frameworks that exist (check with a web search which are maintained today before naming them)
+- Lab: a small event-driven engine in Python (events, data handler, strategy, portfolio, simulated broker with
+  slippage) with tests on the accounting
+
+## `execution` — Execution and market microstructure (after `engine`)
+Builds on `orderflow` and on TWAP, VWAP and implementation shortfall from `algo`.
+- The limit order book as a data structure: price-time priority, queue position, matching
+- The cost of trading: spread, impact, timing risk; temporary against permanent impact, the square-root rule
+- Optimal execution: the trade-off between impact and risk, Almgren-Chriss in plain words, front-loaded against
+  even schedules
+- Passive against aggressive: fill probability, adverse selection, when to cross the spread
+- Market making: quoting both sides, inventory risk, skewing quotes, why it is a speed game for the big firms
+- Venues and routing in outline: exchanges, dark pools, auctions, payment for order flow, smart order routing
+- Transaction cost analysis: arrival price, VWAP and close benchmarks, measuring your own slippage
+- Lab: a limit order book and matching engine in Python, then execute a parent order by TWAP and by a
+  front-loaded schedule under a simple impact model and compare shortfall
+
+## `agentic` — Agentic trading: language models in the loop (after `execution`)
+Agents built on large language models that read, reason and act through tools. Check every factual claim about
+current products, papers and regulation with a web search, and date it. No model or vendor is recommended; keep
+examples provider-neutral. Exercises cannot call a model: use a stand-in function that returns canned replies, so
+the reader builds and tests everything around the model.
+- What an agent is: a model, tools and a loop; how that differs from a rule-based algorithm and from a chatbot
+- What language models are good and bad at in markets: reading filings, news and transcripts against arithmetic,
+  forecasting prices and knowing today's date; hallucination
+- Tools and structured output: function calling, schemas, validating what the model returns before anything
+  acts on it
+- A research agent: retrieval over documents, summarising, turning text into a signal, and how to test that
+  signal like any other (look-ahead through the model's training data)
+- Multi-agent designs: analyst, risk and trader roles, debate, what the published experiments show and their
+  limits
+- Guardrails: the model proposes and deterministic code disposes; position limits, allow-lists, human approval,
+  kill switches, prompt injection through news and web pages
+- Evaluating and running one: backtesting an agent, non-determinism, cost and latency, logging every prompt and
+  decision, regulation and responsibility in outline
+- Lab: an agent loop in Python with a stand-in model (tool calls parsed and validated, a risk gate that blocks a
+  bad order, a full decision log), tested against replies that try to break it

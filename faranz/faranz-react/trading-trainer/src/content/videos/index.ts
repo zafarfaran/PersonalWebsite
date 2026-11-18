@@ -10,13 +10,23 @@ import { strategiesVideos } from './strategies'
 import { riskVideos } from './risk'
 import { daytradingVideos } from './daytrading'
 import { backtestVideos } from './backtest'
-import { quantVideos } from './quant'
-import { algoVideos } from './algo'
 import { businessVideos } from './business'
+import { quantVideos } from './quant'
+import { qdataVideos } from './qdata'
+import { qseriesVideos } from './qseries'
+import { qalphaVideos } from './qalpha'
+import { statarbVideos } from './statarb'
+import { portfolioVideos } from './portfolio'
+import { qoptionsVideos } from './qoptions'
+import { qmlVideos } from './qml'
+import { algoVideos } from './algo'
+import { engineVideos } from './engine'
+import { executionVideos } from './execution'
+import { agenticVideos } from './agentic'
 
 export type { Playlist, Video } from './types'
 
-export const BY_MODULE: Record<string, ModuleVideos> = { markets: marketsVideos, charts: chartsVideos, orderflow: orderflowVideos, profile: profileVideos, options: optionsVideos, pricing: pricingVideos, volatility: volatilityVideos, strategies: strategiesVideos, risk: riskVideos, daytrading: daytradingVideos, backtest: backtestVideos, quant: quantVideos, algo: algoVideos, business: businessVideos }
+export const BY_MODULE: Record<string, ModuleVideos> = { markets: marketsVideos, charts: chartsVideos, orderflow: orderflowVideos, profile: profileVideos, options: optionsVideos, pricing: pricingVideos, volatility: volatilityVideos, strategies: strategiesVideos, risk: riskVideos, daytrading: daytradingVideos, backtest: backtestVideos, business: businessVideos, quant: quantVideos, qdata: qdataVideos, qseries: qseriesVideos, qalpha: qalphaVideos, statarb: statarbVideos, portfolio: portfolioVideos, qoptions: qoptionsVideos, qml: qmlVideos, algo: algoVideos, engine: engineVideos, execution: executionVideos, agentic: agenticVideos }
 const some = <T,>(entries: [string, T[]][]) => Object.fromEntries(entries.filter(([, list]) => list.length > 0))
 
 /** Videos on the idea of one lesson, by lesson id. */
