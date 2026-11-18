@@ -63,7 +63,7 @@ export const experiences: Experience[] = [
     period: 'July 2024 – Aug 2024',
     url: 'https://deepmind.google',
     bullets: [
-      'Developed Adaptive Memory RAG (AMRAG) framework, integrating self-checks and web search, leading to 88% improvement in response accuracy',
+      'Researched Adaptive Memory RAG (AMRAG) framework, integrating self-checks and web search, leading to 88% improvement in response accuracy',
       'Applied decomposition, QA context generation, hallucination detection, and retrieval augmentation',
       'Achieved sub-5-second response times',
     ],
